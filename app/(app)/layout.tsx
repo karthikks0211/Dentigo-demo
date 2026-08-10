@@ -9,6 +9,7 @@ import PillLoader from "@/components/PillLoader";
 export default function AppGroupLayout({ children }: { children: ReactNode }) {
     const { user, loading } = useAuth();
     const router = useRouter();
+    
 
     useEffect(() => {
         if (!loading && !user) {
