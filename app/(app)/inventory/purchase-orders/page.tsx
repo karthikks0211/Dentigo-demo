@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { Plus, Trash2, PackageCheck } from "lucide-react";
+import { Plus, Trash2, PackageCheck, MoreVertical } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
@@ -156,24 +156,31 @@ export default function PurchaseOrdersPage() {
                                         <tr key={po.id}>
                                             <td><b>{po.poNumber}</b></td>
                                             <td>{supplierFor(po.supplierId)}</td>
-                                            <td>{po.lines.map((l) => l.name).join(", ")}</td>
+                                            <td><span className="linesCell" title={po.lines.map((l) => l.name).join(", ")}>{po.lines.map((l) => l.name).join(", ")}</span></td>
                                             <td>₹{value.toLocaleString()}</td>
-                                            <td><Badge status={po.status} /></td>
+                                            <td><span className="poStatusBadge"><Badge status={po.status} /></span></td>
                                             <td>{po.orderedDate}</td>
                                             <td>
-                                                <div style={{ display: "flex", gap: 8 }}>
-                                                    {po.status === "Draft" && (
-                                                        <button className="quickDemoBtn" style={{ margin: 0 }} onClick={() => changeStatus(po, "Ordered")}>Mark Ordered</button>
-                                                    )}
-                                                    {po.status === "Ordered" && (
-                                                        <button className="quickDemoBtn" style={{ margin: 0 }} onClick={() => openReceive(po)}>
-                                                            <PackageCheck size={13} style={{ verticalAlign: -2, marginRight: 4 }} />Receive
+                                                {(po.status === "Draft" || po.status === "Ordered") && (
+                                                    <div className="rowActions" tabIndex={0}>
+                                                        <button className="rowActionsTrigger" aria-label="Actions" type="button">
+                                                            <MoreVertical size={16} />
                                                         </button>
-                                                    )}
-                                                    {(po.status === "Draft" || po.status === "Ordered") && (
-                                                        <button className="more" style={{ color: "#dc2626" }} onClick={() => setDeleting(po)}><Trash2 size={14} /></button>
-                                                    )}
-                                                </div>
+                                                        <div className="rowActionsMenu">
+                                                            {po.status === "Draft" && (
+                                                                <button type="button" onClick={() => changeStatus(po, "Ordered")}>Mark Ordered</button>
+                                                            )}
+                                                            {po.status === "Ordered" && (
+                                                                <button type="button" onClick={() => openReceive(po)}>
+                                                                    <PackageCheck size={15} />Receive
+                                                                </button>
+                                                            )}
+                                                            <button type="button" className="danger" onClick={() => setDeleting(po)}>
+                                                                <Trash2 size={15} />Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     );

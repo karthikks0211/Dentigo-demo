@@ -141,7 +141,7 @@ export default function BookPage() {
 
             {step === 3 && doctor && (
                 <div className="card">
-                    <div style={{ display: "grid", gap: 15, maxWidth: 420 }}>
+                    <div className="confirmForm" style={{ maxWidth: 420 }}>
                         <label>Patient
                             <select value={patientId || ""} onChange={(e) => setPatientId(e.target.value || null)}>
                                 <option value="">Select a patient…</option>

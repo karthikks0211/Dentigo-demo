@@ -37,16 +37,16 @@ aside {
 
 .brand strong {
     display: block;
-    font: 800 22px Manrope
+    font: 800 25px Manrope
 }
 
 .brand small {
-    font-size: 11px;
+    font-size: 13px;
     opacity: .77
 }
 
 .tooth {
-    font-size: 24px;
+    font-size: 28px;
     width: 31px;
     height: 31px;
     border: 2px solid #c9f4e9;
@@ -58,7 +58,26 @@ aside {
 
 nav {
     display: grid;
-    gap: 5px
+    gap: 5px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .35) transparent
+}
+
+nav::-webkit-scrollbar {
+    width: 6px
+}
+
+nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .35);
+    border-radius: 3px
+}
+
+nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, .55)
 }
 
 nav button,
@@ -70,7 +89,9 @@ nav a,
     color: #dbf7f3;
     border-radius: 7px;
     text-align: left;
-    font: 500 15px inherit;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 500;
     padding: 0 14px;
     cursor: pointer;
     text-decoration: none;
@@ -81,7 +102,7 @@ nav a,
 nav button span,
 nav a span,
 .sideBottom button span {
-    font-size: 19px;
+    font-size: 22px;
     width: 26px;
     flex-shrink: 0;
     display: inline-flex;
@@ -121,7 +142,7 @@ header {
 
 .crumb {
     color: #7e9093;
-    font-size: 13px
+    font-size: 15px
 }
 
 .crumb span {
@@ -153,7 +174,7 @@ header {
 
 .bell {
     position: relative;
-    font-size: 20px;
+    font-size: 23px;
     color: #5c7074
 }
 
@@ -184,19 +205,19 @@ header {
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700
 }
 
 .profile strong {
     display: block;
-    font-size: 12px
+    font-size: 14px
 }
 
 .profile small {
     display: block;
     color: #8a999c;
-    font-size: 10px;
+    font-size: 12px;
     margin-top: 2px
 }
 
@@ -215,7 +236,7 @@ header {
     border: 1px solid #e5eaea;
     border-radius: 8px;
     box-shadow: 0 8px 20px #2333;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 2
 }
 
@@ -237,7 +258,7 @@ header {
 }
 
 .pageHead h1 {
-    font: 800 25px Manrope;
+    font: 800 29px Manrope;
     margin: 0 0 6px;
     letter-spacing: -.6px
 }
@@ -246,7 +267,7 @@ header {
 .cardHead p,
 .muted {
     color: #819194;
-    font-size: 13px;
+    font-size: 15px;
     margin: 0
 }
 
@@ -256,7 +277,7 @@ header {
     color: #fff;
     border-radius: 6px;
     padding: 11px 17px;
-    font: 600 13px inherit;
+    font: 600 15px inherit;
     box-shadow: 0 4px 10px #12988b33;
     cursor: pointer
 }
@@ -283,18 +304,18 @@ header {
 }
 
 .stat p {
-    font-size: 12px;
+    font-size: 14px;
     color: #74858a;
     margin: 0 0 8px
 }
 
 .stat h2 {
-    font: 800 25px Manrope;
+    font: 800 29px Manrope;
     margin: 0 0 7px
 }
 
 .stat small {
-    font-size: 10px;
+    font-size: 12px;
     color: #94a0a1
 }
 
@@ -308,7 +329,7 @@ header {
     border-radius: 9px;
     display: grid;
     place-items: center;
-    font-size: 18px
+    font-size: 21px
 }
 
 .teal {
@@ -349,7 +370,7 @@ header {
 }
 
 .card h3 {
-    font: 700 15px Manrope;
+    font: 700 17px Manrope;
     margin: 0 0 4px
 }
 
@@ -358,12 +379,12 @@ header {
     border: 0;
     background: none;
     color: #0c938a;
-    font: 600 12px inherit;
+    font: 600 14px inherit;
     cursor: pointer
 }
 
 .cardHead b {
-    font-size: 16px;
+    font-size: 18px;
     margin-left: 5px
 }
 
@@ -383,7 +404,7 @@ header {
     color: #167e77;
     display: inline-grid;
     place-items: center;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     flex: none
 }
@@ -395,24 +416,24 @@ header {
 }
 
 .apptName strong {
-    font-size: 12px
+    font-size: 14px
 }
 
 .apptName span,
 .apptName small {
-    font-size: 10px;
+    font-size: 12px;
     color: #839296
 }
 
 .apptTime {
     display: grid;
     text-align: right;
-    font-size: 11px;
+    font-size: 13px;
     gap: 4px
 }
 
 .badge {
-    font-size: 9px;
+    font-size: 10px;
     border-radius: 10px;
     padding: 3px 7px;
     display: inline-flex;
@@ -507,7 +528,7 @@ header {
     justify-content: end;
     align-items: center;
     gap: 7px;
-    font-size: 10px;
+    font-size: 12px;
     color: #8d9b9e
 }
 
@@ -521,16 +542,16 @@ header {
     display: flex;
     justify-content: space-between;
     padding-top: 15px;
-    font-size: 11px
+    font-size: 13px
 }
 
 .chartFoot strong {
-    font-size: 17px
+    font-size: 20px
 }
 
 .chartFoot small {
     color: #1a9c72;
-    font-size: 10px
+    font-size: 12px
 }
 
 .dot {
@@ -570,27 +591,27 @@ header {
 }
 
 .dateBox b {
-    font-size: 14px
+    font-size: 16px
 }
 
 .dateBox small {
-    font-size: 8px;
+    font-size: 9px;
     color: #0b9188
 }
 
 .up strong {
-    font-size: 12px
+    font-size: 14px
 }
 
 .up p {
-    font-size: 10px;
+    font-size: 12px;
     color: #839296;
     margin: 3px 0 0
 }
 
 .doctor {
     margin-left: auto;
-    font-size: 10px;
+    font-size: 12px;
     color: #75878a
 }
 
@@ -622,11 +643,11 @@ header {
 
 .quick>button span {
     flex: 1;
-    font-size: 11px
+    font-size: 13px
 }
 
 .quick>button b {
-    font-size: 17px;
+    font-size: 20px;
     color: #0b998f
 }
 
@@ -648,13 +669,13 @@ header {
 }
 
 .summary strong {
-    font-size: 11px;
+    font-size: 13px;
     color: #829194;
     font-weight: 500
 }
 
 .summary span {
-    font: 800 20px Manrope;
+    font: 800 23px Manrope;
     color: #233944
 }
 
@@ -681,7 +702,7 @@ header {
     border: 0;
     outline: 0;
     width: 220px;
-    font: 12px inherit
+    font: 14px inherit
 }
 
 .filter {
@@ -690,11 +711,12 @@ header {
     border-radius: 5px;
     color: #667b7e;
     padding: 0 12px;
-    font-size: 12px
+    font-size: 14px
 }
 
 .tableWrap {
-    overflow: auto
+    overflow-x: auto;
+    overflow-y: visible
 }
 
 table {
@@ -707,7 +729,7 @@ th {
     padding: 13px 20px;
     background: #fbfcfc;
     color: #819194;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: .3px;
     font-weight: 600;
@@ -715,14 +737,14 @@ th {
 }
 
 th span {
-    font-size: 9px;
+    font-size: 10px;
     color: #b5c1c2
 }
 
 td {
     padding: 14px 20px;
     border-top: 1px solid #eef2f2;
-    font-size: 12px;
+    font-size: 14px;
     vertical-align: middle;
     white-space: nowrap
 }
@@ -732,14 +754,14 @@ tbody tr:hover {
 }
 
 td b {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     display: block
 }
 
 td small {
     display: block;
-    font-size: 10px;
+    font-size: 12px;
     color: #839396;
     margin-top: 3px
 }
@@ -762,7 +784,7 @@ td small {
     display: flex;
     justify-content: space-between;
     color: #829295;
-    font-size: 11px;
+    font-size: 13px;
     border-top: 1px solid #edf1f1
 }
 
@@ -775,7 +797,7 @@ td small {
     background: white;
     width: 25px;
     height: 23px;
-    font-size: 11px;
+    font-size: 13px;
     color: #77898b
 }
 
@@ -789,7 +811,7 @@ td small {
     text-align: center;
     color: #95a2a3;
     line-height: 2;
-    font-size: 13px;
+    font-size: 15px;
     padding: 35px
 }
 
@@ -813,23 +835,37 @@ td small {
     color: #26363b;
     padding: 0;
     box-shadow: -8px 0 24px #1233;
-    display: block
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100vh;
+    overflow: hidden
 }
 
 .drawerHead {
     padding: 23px 25px 18px;
     border-bottom: 1px solid #e6eeee;
     display: flex;
-    justify-content: space-between
+    justify-content: space-between;
+    flex-shrink: 0
+}
+
+.drawerBody {
+    padding: 20px 25px;
+    display: grid;
+    gap: 15px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto
 }
 
 .drawerHead h2 {
-    font: 800 19px Manrope;
+    font: 800 22px Manrope;
     margin: 0 0 4px
 }
 
 .drawerHead p {
-    font-size: 12px;
+    font-size: 14px;
     color: #849497;
     margin: 0
 }
@@ -837,7 +873,7 @@ td small {
 .drawerHead button {
     border: 0;
     background: none;
-    font-size: 28px;
+    font-size: 32px;
     color: #8ea0a2;
     cursor: pointer
 }
@@ -849,7 +885,7 @@ td small {
 }
 
 .drawer label {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     display: grid;
     gap: 6px;
@@ -865,7 +901,7 @@ td small {
     border: 1px solid #dce6e5;
     border-radius: 5px;
     padding: 10px;
-    font: 13px inherit;
+    font: 15px inherit;
     color: #314247;
     width: 100%;
     max-width: 100%;
@@ -899,7 +935,9 @@ td small {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 10px
+    margin-top: 0;
+    flex-shrink: 0;
+    border-top: 1px solid #e6eeee
 }
 
 .drawerFoot button {
@@ -908,7 +946,7 @@ td small {
     color: #20303b;
     border-radius: 6px;
     padding: 10px 18px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -967,7 +1005,7 @@ td small {
     border: 1px solid #b2e0dc;
     border-radius: 16px;
     padding: 4px 10px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
@@ -978,7 +1016,7 @@ td small {
     background: none;
     border: none;
     color: #087f78;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     padding: 0;
@@ -998,7 +1036,7 @@ td small {
     padding: 4px !important;
     flex: 1;
     min-width: 120px;
-    font-size: 13px;
+    font-size: 15px;
     background: transparent;
     height: auto !important;
 }
@@ -1026,7 +1064,7 @@ td small {
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 15px;
     border-bottom: 1px solid #f1f5f9;
     transition: background 0.15s ease;
 }
@@ -1040,7 +1078,7 @@ td small {
 }
 
 .stockBadge {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 12px;
@@ -1066,7 +1104,7 @@ td small {
     background: #fafcfc;
     color: #087f78;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1091,7 +1129,7 @@ td small {
 
 .quickAddMedicineForm h4 {
     margin: 0 0 4px;
-    font-size: 13px;
+    font-size: 15px;
     color: #087f78;
 }
 
@@ -1106,7 +1144,7 @@ td small {
     padding: 14px 18px;
     border-radius: 7px;
     box-shadow: 0 9px 25px #1236;
-    font-size: 13px;
+    font-size: 15px;
     display: flex;
     gap: 9px;
     align-items: center
@@ -1119,7 +1157,7 @@ td small {
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 11px
+    font-size: 13px
 }
 
 .toast i {
@@ -1154,7 +1192,7 @@ td small {
     }
 
     .tooth {
-        font-size: 18px
+        font-size: 21px
     }
 
     nav button {
@@ -1164,7 +1202,7 @@ td small {
 
     nav button span,
     .sideBottom button span {
-        font-size: 20px;
+        font-size: 23px;
         width: auto
     }
 
@@ -1225,7 +1263,7 @@ td small {
     }
 
     .stat h2 {
-        font-size: 20px
+        font-size: 23px
     }
 
     .statIcon {
@@ -1234,11 +1272,11 @@ td small {
     }
 
     .pageHead h1 {
-        font-size: 20px
+        font-size: 23px
     }
 
     .pageHead p {
-        font-size: 11px
+        font-size: 13px
     }
 
     .summary {
@@ -1322,7 +1360,7 @@ th.sortable:hover {
 }
 
 .filterPanel label {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: #4b6366;
     display: flex;
@@ -1334,7 +1372,7 @@ th.sortable:hover {
     padding: 7px 10px;
     border: 1px solid #d4e0df;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 15px;
     background: #fafcfc;
 }
 
@@ -1343,7 +1381,7 @@ th.sortable:hover {
     border: 1px solid #d4e0df;
     padding: 6px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     color: #556c70;
 }
@@ -1379,7 +1417,7 @@ th.sortable:hover {
     background: transparent;
     border: 0;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 15px;
     color: #2b3e42;
     display: flex;
     align-items: center;
@@ -1436,7 +1474,7 @@ th.sortable:hover {
 
 .modalHead h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 21px;
     font-weight: 700;
     color: #1e293b;
 }
@@ -1444,7 +1482,7 @@ th.sortable:hover {
 .modalHead button.closeBtn {
     background: transparent;
     border: none;
-    font-size: 22px;
+    font-size: 25px;
     cursor: pointer;
     color: #94a3b8;
     line-height: 1;
@@ -1460,7 +1498,7 @@ th.sortable:hover {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    font-size: 14px;
+    font-size: 16px;
     color: #334155;
 }
 
@@ -1478,7 +1516,7 @@ th.sortable:hover {
     background: #ffffff;
     border-radius: 6px;
     padding: 8px 16px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     cursor: pointer;
 }
@@ -1520,7 +1558,7 @@ th.sortable:hover {
 
 .notifHead h4 {
     margin: 0;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #1e293b;
 }
@@ -1529,7 +1567,7 @@ th.sortable:hover {
     background: none;
     border: none;
     color: #087f78;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     font-weight: 600;
 }
@@ -1545,7 +1583,7 @@ th.sortable:hover {
     display: flex;
     gap: 12px;
     align-items: flex-start;
-    font-size: 13px;
+    font-size: 15px;
     cursor: pointer;
     transition: background 0.15s ease;
 }
@@ -1566,20 +1604,20 @@ th.sortable:hover {
     color: #0d9488;
     display: grid;
     place-items: center;
-    font-size: 14px;
+    font-size: 16px;
     flex-shrink: 0;
 }
 
 .notifItem strong {
     display: block;
     color: #0f172a;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .notifItem p {
     margin: 2px 0 0;
     color: #64748b;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .loginScreen {
@@ -1608,7 +1646,7 @@ th.sortable:hover {
 }
 
 .loginLogo strong {
-    font: 800 24px Manrope, sans-serif;
+    font: 800 28px Manrope, sans-serif;
     color: #087f78;
 }
 
@@ -1620,7 +1658,7 @@ th.sortable:hover {
 
 .loginCard h2 {
     margin: 0 0 8px;
-    font-size: 22px;
+    font-size: 25px;
     font-weight: 700;
     color: #0f172a;
 }
@@ -1628,7 +1666,7 @@ th.sortable:hover {
 .loginCard p {
     margin: 0 0 24px;
     color: #64748b;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .loginForm {
@@ -1638,7 +1676,7 @@ th.sortable:hover {
 }
 
 .loginForm label {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: #334155;
     display: flex;
@@ -1651,7 +1689,7 @@ th.sortable:hover {
     padding: 0 14px;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 16px;
     outline: none;
     transition: border 0.15s ease;
 }
@@ -1667,7 +1705,7 @@ th.sortable:hover {
     color: #ffffff;
     border: none;
     border-radius: 8px;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
     margin-top: 8px;
@@ -1684,7 +1722,7 @@ th.sortable:hover {
     color: #475569;
     padding: 10px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 15px;
     cursor: pointer;
     font-weight: 500;
     text-align: center;
@@ -1727,7 +1765,7 @@ th.sortable:hover {
 
 .medicineBuilderHead h4 {
     margin: 0;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #0f172a;
 }
@@ -1735,7 +1773,7 @@ th.sortable:hover {
 .medCountBadge {
     background: #ccfbf1;
     color: #0d9488;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 12px;
@@ -1770,14 +1808,14 @@ th.sortable:hover {
 }
 
 .medCardTop strong {
-    font-size: 14px;
+    font-size: 16px;
     color: #0f172a;
 }
 
 .medStrength {
     color: #087f78;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 14px;
     margin-left: 6px;
 }
 
@@ -1790,7 +1828,7 @@ th.sortable:hover {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 15px;
     padding: 4px 6px;
     border-radius: 4px;
     color: #64748b;
@@ -1811,7 +1849,7 @@ th.sortable:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    font-size: 12px;
+    font-size: 14px;
     color: #475569;
 }
 
@@ -1823,7 +1861,7 @@ th.sortable:hover {
 }
 
 .medNotes {
-    font-size: 12px;
+    font-size: 14px;
     color: #64748b;
     font-style: italic;
 }
@@ -1845,7 +1883,7 @@ th.sortable:hover {
 
 .medicineFormCard h5 {
     margin: 0;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: #087f78;
 }
@@ -1861,7 +1899,7 @@ th.sortable:hover {
 }
 
 .medFormGrid label {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: #475569;
     display: flex;
@@ -1878,7 +1916,7 @@ th.sortable:hover {
     padding: 7px 10px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 14px;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -1891,7 +1929,7 @@ th.sortable:hover {
     width: 100%;
     border-collapse: collapse;
     margin-top: 8px;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .medDetailTable th {
@@ -1932,7 +1970,7 @@ th.sortable:hover {
 
 .invoiceHeaderBar h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 21px;
     font-weight: 700;
     letter-spacing: -0.3px;
     display: flex;
@@ -1942,7 +1980,7 @@ th.sortable:hover {
 
 .invoiceHeaderBar p {
     margin: 2px 0 0 0;
-    font-size: 11px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.85);
 }
 
@@ -1951,7 +1989,7 @@ th.sortable:hover {
     border: 1px solid rgba(255, 255, 255, 0.35);
     padding: 4px 12px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -1976,7 +2014,7 @@ th.sortable:hover {
 
 .invoiceInfoBlock h4 {
     margin: 0;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: #0f5c56;
     text-transform: uppercase;
@@ -1986,7 +2024,7 @@ th.sortable:hover {
 }
 
 .invoiceInfoDetail {
-    font-size: 11px;
+    font-size: 13px;
     color: #475569;
     line-height: 1.5;
 }
@@ -2006,11 +2044,11 @@ th.sortable:hover {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    font-size: 11px;
+    font-size: 13px;
 }
 
 .summaryCol label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
@@ -2021,7 +2059,7 @@ th.sortable:hover {
     padding: 5px 8px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 13px;
     background: #fff;
     width: 100%;
     box-sizing: border-box;
@@ -2030,7 +2068,7 @@ th.sortable:hover {
 .invoiceItemTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .invoiceItemTable th {
@@ -2038,7 +2076,7 @@ th.sortable:hover {
     color: #ffffff;
     text-align: left;
     padding: 10px 12px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -2067,7 +2105,7 @@ th.sortable:hover {
 
 .invoiceNotesBox h5 {
     margin: 0;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     color: #0f5c56;
     text-transform: uppercase;
@@ -2077,7 +2115,7 @@ th.sortable:hover {
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     padding: 8px;
-    font-size: 11px;
+    font-size: 13px;
     min-height: 50px;
     resize: vertical;
     width: 100%;
@@ -2102,7 +2140,7 @@ th.sortable:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 14px;
     color: #475569;
 }
 
@@ -2111,7 +2149,7 @@ th.sortable:hover {
     padding: 3px 6px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 13px;
     text-align: right;
 }
 
@@ -2120,7 +2158,7 @@ th.sortable:hover {
     border-top: 2px solid #0f5c56;
     padding: 8px 10px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 800;
     color: #0f5c56;
     margin-top: 4px;
@@ -2133,7 +2171,7 @@ th.sortable:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 10px;
+    font-size: 12px;
     border-top: 1px solid #087f78;
 }
 
@@ -2285,7 +2323,7 @@ button:hover .iconHoverScale {
 }
 
 .stat p {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: #64748b;
     margin: 0;
@@ -2323,7 +2361,7 @@ button:hover .iconHoverScale {
 }
 
 .stat h2 {
-    font: 800 30px 'Manrope', sans-serif;
+    font: 800 34px 'Manrope', sans-serif;
     color: #496ec4;
     margin: 12px 0;
     letter-spacing: -0.5px;
@@ -2343,7 +2381,7 @@ button:hover .iconHoverScale {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 20px;
@@ -2365,7 +2403,7 @@ button:hover .iconHoverScale {
 }
 
 .statSubtitle {
-    font-size: 11px;
+    font-size: 13px;
     color: #94a3b8;
 }
 
@@ -2390,13 +2428,13 @@ button:hover .iconHoverScale {
 }
 
 .cardHead h3 {
-    font: 700 16px 'Manrope', sans-serif;
+    font: 700 18px 'Manrope', sans-serif;
     color: #0f172a;
     margin: 0 0 3px;
 }
 
 .cardHead .subtitle {
-    font-size: 12px;
+    font-size: 14px;
     color: #94a3b8;
     margin: 0;
 }
@@ -2447,7 +2485,7 @@ button:hover .iconHoverScale {
     position: absolute;
     top: -9px;
     left: 0;
-    font-size: 10px;
+    font-size: 12px;
     color: #94a3b8;
     background: #ffffff;
     padding-right: 4px;
@@ -2503,7 +2541,7 @@ button:hover .iconHoverScale {
     top: -28px;
     background: #0f172a;
     color: #ffffff;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     padding: 3px 7px;
     border-radius: 6px;
@@ -2521,7 +2559,7 @@ button:hover .iconHoverScale {
 }
 
 .barItem span {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: #64748b;
 }
@@ -2551,7 +2589,7 @@ button:hover .iconHoverScale {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .legendDot {
@@ -2624,7 +2662,7 @@ aside {
 }
 
 nav button {
-    color: #e0f7fc !important;
+    color: #dbf7f3 !important;
     font-weight: 500 !important;
 }
 
@@ -2671,7 +2709,7 @@ header {
 .pageHead h1 {
     color: #124455 !important;
     font-weight: 800 !important;
-    font-size: 26px !important;
+    font-size: 30px !important;
     letter-spacing: -0.5px !important;
     text-shadow: none !important;
     margin: 0 0 4px !important;
@@ -2680,7 +2718,7 @@ header {
 .pageHead p {
     color: #475569 !important;
     font-weight: 500 !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     text-shadow: none !important;
     margin: 0 !important;
 }
@@ -2713,13 +2751,13 @@ header {
 
 .profile strong {
     color: #0f2d37 !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     font-weight: 700 !important;
 }
 
 .profile small {
     color: #1D9DBE !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
 }
 
@@ -2856,7 +2894,7 @@ button.primary:hover {
     color: #0f2d37 !important;
     padding: 0 !important;
     width: 100% !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
 }
 
 .search input::placeholder {
@@ -3143,7 +3181,7 @@ header {
 
 .pillLoaderLabel {
     margin: 0;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
     color: var(--dg-muted);
     letter-spacing: .01em;
@@ -3165,7 +3203,9 @@ header {
     color: #dbf7f3;
     border-radius: 7px;
     text-align: left;
-    font: 500 15px inherit;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 500;
     padding: 0 14px;
     cursor: pointer;
     display: flex;
@@ -3182,10 +3222,11 @@ nav button:hover {
     display: flex;
     align-items: center;
     gap: 10px;
+    font-size: 17px;
 }
 
 .navGroupToggle .navGroupIcon {
-    font-size: 19px;
+    font-size: 22px;
     width: 22px;
     flex-shrink: 0;
     display: inline-flex;
@@ -3230,7 +3271,9 @@ nav button:hover {
     color: #c7ede7;
     border-radius: 7px;
     text-align: left;
-    font: 500 14px inherit;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
     padding: 0 12px 0 14px;
     cursor: pointer;
     display: flex;
@@ -3330,7 +3373,7 @@ nav button:hover {
     border-radius: 999px;
     background: var(--dg-danger);
     color: #fff;
-    font: 700 11px/20px 'DM Sans', sans-serif;
+    font: 700 13px/23px 'DM Sans', sans-serif;
     text-align: center;
     box-shadow: 0 0 0 2px #fff;
 }
@@ -3381,12 +3424,12 @@ nav button:hover {
 
 .aiPanelHeadTitle strong {
     display: block;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .aiPanelHeadTitle small {
     display: block;
-    font-size: 11px;
+    font-size: 13px;
     opacity: .8;
 }
 
@@ -3425,7 +3468,7 @@ nav button:hover {
 
 .aiPanelEmpty p {
     margin: 0;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.5;
 }
 
@@ -3441,7 +3484,7 @@ nav button:hover {
 
 .aiAlertItem p {
     margin: 0;
-    font-size: 12.5px;
+    font-size: 14px;
     line-height: 1.5;
     color: var(--dg-ink);
 }
@@ -3496,7 +3539,7 @@ nav button:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--dg-muted);
     font-weight: 600;
 }
@@ -3509,7 +3552,7 @@ nav button:hover {
     color: var(--dg-muted);
     display: grid;
     place-items: center;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .wizardStep.active b,
@@ -3570,12 +3613,12 @@ nav button:hover {
 
 .dateChip strong {
     display: block;
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .dateChip small {
     display: block;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--dg-muted);
 }
 
@@ -3600,7 +3643,7 @@ nav button:hover {
     background: #fff;
     border-radius: var(--dg-radius-sm);
     padding: 10px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     color: var(--dg-ink);
@@ -3620,6 +3663,33 @@ nav button:hover {
     display: flex;
     justify-content: space-between;
     margin-top: 24px;
+}
+
+.confirmForm {
+    display: grid;
+    gap: 15px;
+}
+
+.confirmForm label {
+    font-size: 14px;
+    font-weight: 600;
+    display: grid;
+    gap: 6px;
+    color: #4a5f63;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.confirmForm input,
+.confirmForm select {
+    border: 1px solid #dce6e5;
+    border-radius: 5px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    color: #314247;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -3643,7 +3713,7 @@ nav button:hover {
 }
 
 .barcodeLabel strong {
-    font-size: 12px;
+    font-size: 14px;
 }
 
 /* ==========================================================================
@@ -3667,7 +3737,7 @@ nav button:hover {
     gap: 8px;
     color: #fff;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .razorpayHead .closeBtn {
@@ -3702,4 +3772,98 @@ nav button:hover {
     .aiPanel {
         display: none !important;
     }
-}
+}
+
+/* ==========================================================================
+   Row actions (3-dot hover menu) & purchase-order table refinements
+   ========================================================================== */
+.rowActions {
+    position: relative;
+    display: inline-flex;
+}
+
+.rowActionsTrigger {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #64748b;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.rowActionsTrigger:hover,
+.rowActions:focus-within .rowActionsTrigger {
+    background: #eef2f2;
+    color: #0f2d37;
+}
+
+.rowActionsMenu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #fff;
+    border: 1px solid #e1e8e8;
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(15, 45, 55, .16);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 160px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    z-index: 20;
+}
+
+.rowActions:hover .rowActionsMenu,
+.rowActions:focus-within .rowActionsMenu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.rowActionsMenu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.rowActionsMenu button:hover {
+    background: #f1f5f9;
+}
+
+.rowActionsMenu button.danger {
+    color: #dc2626;
+}
+
+.rowActionsMenu button.danger:hover {
+    background: #fef2f2;
+}
+
+.linesCell {
+    display: block;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.poStatusBadge .badge {
+    font-size: 13px;
+    padding: 5px 10px;
+}

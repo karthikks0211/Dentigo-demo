@@ -25,10 +25,10 @@ export default function Drawer({
                     </div>
                     <button onClick={onClose} aria-label="Close">&times;</button>
                 </div>
-                <div style={{ padding: "20px 25px", display: "grid", gap: 15 }}>
+                <div className="drawerBody">
                     {children}
                 </div>
-                <div className="drawerFoot" style={{ padding: "0 25px 22px" }}>
+                <div className="drawerFoot" style={{ padding: "16px 25px 22px" }}>
                     {footer}
                 </div>
             </div>

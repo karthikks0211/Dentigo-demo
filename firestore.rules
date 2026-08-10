@@ -1,11 +1,127 @@
 rules_version = '2';
 
-// Single-user demo app: every collection just requires being signed in as
-// the one seeded DentiGO account. No public/anonymous access.
+// Two roles now share this project, both backed by real Firebase Auth accounts:
+//
+//  - staff: the clinic's admin account(s), identified by a fixed email
+//    allowlist. Full read/write to everything (same behavior as before this
+//    was a single-login demo). Kept as a static list rather than a Firestore
+//    doc on purpose — a "staffUsers/{uid} exists" check has a bootstrap
+//    problem (nobody can create the first staff doc, since creating it would
+//    itself require already being staff). A rules-embedded allowlist has no
+//    such ordering issue.
+//
+//  - patient: any account linked via patientLinks/{uid} -> { patientId }.
+//    Firestore rules can only get() by known document path, not run
+//    arbitrary queries, so that reverse index is how both the client and
+//    these rules resolve "which patient record does this uid own" in one
+//    direct lookup. Patients are scoped to their own data, with narrow
+//    create/update rights for self-service booking and paying invoices —
+//    everything clinical (prescriptions, dispensing, inventory) stays
+//    staff-only.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isStaff() {
+      return isSignedIn() && request.auth.token.email != null
+        && request.auth.token.email.lower() in ["admin@dentigo.dev"];
+    }
+
+    function myPatientId() {
+      return isSignedIn() && exists(/databases/$(database)/documents/patientLinks/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/patientLinks/$(request.auth.uid)).data.patientId
+        : null;
+    }
+
+    function ownsPatientDoc(pid) {
+      return isSignedIn() && pid == myPatientId();
+    }
+
+    // ------------------------------------------------------------- identity
+    match /patientLinks/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update, delete: if isStaff();
+    }
+
+    // -------------------------------------------------------------- people
+    match /doctors/{id} {
+      allow read, write: if isStaff();
+      allow read: if isSignedIn();
+    }
+
+    match /patients/{id} {
+      allow read, write: if isStaff();
+      // Self-registration: a brand-new user (not yet linked to any patient
+      // record) may create their own profile once.
+      allow create: if isSignedIn()
+        && !exists(/databases/$(database)/documents/patientLinks/$(request.auth.uid));
+      allow read, update: if ownsPatientDoc(id);
+    }
+
+    // --------------------------------------------------------- scheduling
+    match /appointments/{id} {
+      allow read, write: if isStaff();
+      allow read: if ownsPatientDoc(resource.data.patientId);
+      allow create: if isSignedIn()
+        && request.resource.data.patientId == myPatientId()
+        && request.resource.data.status == "Pending";
+      // Self-cancel only: own appointment, still Pending/Confirmed, and the
+      // write touches nothing but status, flipping it to Cancelled.
+      allow update: if ownsPatientDoc(resource.data.patientId)
+        && resource.data.status in ["Pending", "Confirmed"]
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
+        && request.resource.data.status == "Cancelled";
+    }
+
+    // -------------------------------------------------------------- clinical
+    match /prescriptions/{id} {
+      allow read, write: if isStaff();
+      allow read: if ownsPatientDoc(resource.data.patientId);
+    }
+
+    match /pharmacyInvoices/{id} {
+      allow read, write: if isStaff();
+      allow read: if ownsPatientDoc(resource.data.patientId);
+    }
+
+    // --------------------------------------------------------------- billing
+    match /consultationInvoices/{id} {
+      allow read, write: if isStaff();
+      allow read: if ownsPatientDoc(resource.data.patientId);
+      // Self-pay only: own invoice, still Pending, and the write touches
+      // nothing but status, flipping it to Paid.
+      allow update: if ownsPatientDoc(resource.data.patientId)
+        && resource.data.status == "Pending"
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
+        && request.resource.data.status == "Paid";
+    }
+
+    match /payments/{id} {
+      allow read, write: if isStaff();
+      allow read: if ownsPatientDoc(resource.data.patientId);
+      // Self-pay only: patients can log a payment against their own
+      // consultation invoice via the simulated checkout, nothing else.
+      allow create: if isSignedIn()
+        && request.resource.data.patientId == myPatientId()
+        && request.resource.data.invoiceType == "Consultation"
+        && request.resource.data.method == "razorpay_sim";
+    }
+
+    // ------------------------------------------------------- staff-only ops
+    match /medicines/{id} { allow read, write: if isStaff(); }
+    match /batches/{id} { allow read, write: if isStaff(); }
+    match /suppliers/{id} { allow read, write: if isStaff(); }
+    match /purchaseOrders/{id} { allow read, write: if isStaff(); }
+    match /stockTransactions/{id} { allow read, write: if isStaff(); }
+    match /salesReturns/{id} { allow read, write: if isStaff(); }
+
+    // Safe default for anything not covered above.
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isStaff();
     }
   }
 }

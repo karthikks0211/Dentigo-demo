@@ -14,7 +14,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword
 } from "firebase/auth";
-import { getFirestore, doc, setDoc, Timestamp } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -37,6 +37,11 @@ const db = getFirestore(app);
 const SEED_EMAIL = process.env.SEED_EMAIL || "admin@dentigo.dev";
 const SEED_PASSWORD = process.env.SEED_PASSWORD || "Dentigo@123";
 
+// One shared demo password for every seeded patient — lets the mobile app's
+// patient login be demoed against any of them without hunting for per-patient
+// credentials. Real self-registered patients pick their own password.
+const SEED_PATIENT_PASSWORD = process.env.SEED_PATIENT_PASSWORD || "Patient@123";
+
 function daysFromNow(n: number): string {
     const d = new Date();
     d.setDate(d.getDate() + n);
@@ -57,6 +62,37 @@ async function ensureDemoUser() {
             throw err;
         }
     }
+}
+
+/**
+ * Creates (or signs into) a Firebase Auth account per seeded patient and
+ * links it via patientLinks/{uid} so the mobile app can resolve "which
+ * patient record does this login own" — see firestore.rules. Must run LAST:
+ * creating each account signs the script in AS that patient, which is fine
+ * for writing its own patientLinks doc (self-linking is patient-writable by
+ * rule) but would break any subsequent staff-only write.
+ */
+async function seedPatientAccounts(patients: Record<string, { email: string }>) {
+    for (const [patientId, data] of Object.entries(patients)) {
+        let uid: string;
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, data.email, SEED_PATIENT_PASSWORD);
+            uid = cred.user.uid;
+        } catch (err: any) {
+            if (err.code === "auth/email-already-in-use") {
+                const cred = await signInWithEmailAndPassword(auth, data.email, SEED_PATIENT_PASSWORD);
+                uid = cred.user.uid;
+            } else {
+                throw err;
+            }
+        }
+
+        const linkRef = doc(db, "patientLinks", uid);
+        if (!(await getDoc(linkRef)).exists()) {
+            await setDoc(linkRef, { patientId });
+        }
+    }
+    console.log(`Linked ${Object.keys(patients).length} patient logins (password: ${SEED_PATIENT_PASSWORD})`);
 }
 
 async function seedCollection(name: string, docs: Record<string, any>) {
@@ -112,7 +148,7 @@ async function main() {
     });
 
     // --------------------------------------------------------------- patients
-    await seedCollection("patients", {
+    const patients = {
         "pat-ananya": { name: "Ananya Sharma", email: "ananya.sharma@email.com", phone: "+91 98765 43210", age: 32, gender: "Female", address: "B-402, Green Glen Layout, Bangalore" },
         "pat-rohan": { name: "Rohan Mehta", email: "rohan.mehta@email.com", phone: "+91 98201 76432", age: 45, gender: "Male", address: "12/A Park Street, Mumbai" },
         "pat-priya": { name: "Priya Nair", email: "priya.nair@email.com", phone: "+91 99876 14208", age: 28, gender: "Female", address: "45 MG Road, Kochi" },
@@ -121,7 +157,8 @@ async function main() {
         "pat-vikram": { name: "Vikram Singh", email: "vikram.singh@email.com", phone: "+91 90210 44556", age: 51, gender: "Male", address: "22 Civil Lines, Jaipur" },
         "pat-neha": { name: "Neha Gupta", email: "neha.gupta@email.com", phone: "+91 91234 87654", age: 34, gender: "Female", address: "7 Salt Lake, Kolkata" },
         "pat-karan": { name: "Karan Malhotra", email: "karan.malhotra@email.com", phone: "+91 96543 21098", age: 29, gender: "Male", address: "15 Koramangala, Bangalore" }
-    });
+    };
+    await seedCollection("patients", patients);
 
     // ----------------------------------------------------------- appointments
     await seedCollection("appointments", {
@@ -291,7 +328,13 @@ async function main() {
         "ret-2": { pharmacyInvoiceId: "pinv-2", pharmacyInvoiceNo: "PH-202608-0002", medicineId: "med-metronidazole", name: "Metronidazole 400mg", batchId: "batch-metro-1", qty: 2, action: "Writeoff", reason: "Blister pack damaged", date: daysFromNow(-3) }
     });
 
-    console.log("\nSeed complete. Log in with:", SEED_EMAIL, "/", SEED_PASSWORD);
+    // Must run after every staff-authenticated write above — see the doc
+    // comment on seedPatientAccounts for why.
+    await seedPatientAccounts(patients);
+
+    console.log("\nSeed complete.");
+    console.log("Staff login:", SEED_EMAIL, "/", SEED_PASSWORD);
+    console.log(`Patient logins: any seeded patient email above / ${SEED_PATIENT_PASSWORD} (e.g. ${patients["pat-ananya"].email})`);
     process.exit(0);
 }
 
