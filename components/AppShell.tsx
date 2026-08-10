@@ -1,12 +1,14 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Stethoscope, LogOut, ChevronRight } from "lucide-react";
+import { Stethoscope, LogOut, ChevronRight, HelpCircle } from "lucide-react";
 import { navConfig, isNavGroup, NavGroup } from "@/lib/nav-config";
 import { useAuth } from "@/lib/auth-context";
+import { useTour } from "@/lib/tour-context";
 import AiAssistantPanel from "@/components/AiAssistantPanel";
+import WalkthroughTour from "@/components/WalkthroughTour";
 
 function initials(email: string) {
     return email.slice(0, 2).toUpperCase();
@@ -57,6 +59,15 @@ function NavGroupSection({ group, pathname }: { group: NavGroup; pathname: strin
 export default function AppShell({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { user, signOut } = useAuth();
+    const { startTour, hasCompletedTour } = useTour();
+
+    useEffect(() => {
+        if (!hasCompletedTour()) {
+            const timer = setTimeout(() => startTour(), 700);
+            return () => clearTimeout(timer);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div className="app">
@@ -94,6 +105,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <header>
                     <div className="crumb">DentiGO <span>/</span> {findCrumb(pathname)}</div>
                     <div className="tools">
+                        <button className="helpBtn" type="button" onClick={startTour} aria-label="Take the walkthrough" title="Take the walkthrough">
+                            <HelpCircle size={18} />
+                        </button>
                         <button className="profile" type="button">
                             <span>{initials(user?.email || "A")}</span>
                             <div>
@@ -110,6 +124,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </main>
 
             <AiAssistantPanel />
+            <WalkthroughTour />
         </div>
     );
 }

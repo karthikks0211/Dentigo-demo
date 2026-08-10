@@ -3869,3 +3869,203 @@ nav button:hover {
     font-size: 13px;
     padding: 5px 10px;
 }
+
+/* ==========================================================================
+   Guided Walkthrough Tour
+   ========================================================================== */
+.helpBtn {
+    height: 34px;
+    width: 34px;
+    border-radius: 50%;
+    background: #f0f5f5;
+    color: #5c7074;
+    display: grid;
+    place-items: center;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.helpBtn:hover {
+    background: var(--dg-teal-100, #d5f0ed);
+    color: var(--dg-teal-700, #087f78);
+}
+
+.tourOverlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(6, 14, 26, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.15s ease;
+}
+
+.tourCard {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    padding: 32px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.tourClose {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+}
+
+.tourClose:hover {
+    color: #0f172a;
+}
+
+.tourStepIcon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--dg-teal-50, #f0faf9);
+    color: var(--dg-teal-700, #087f78);
+    display: grid;
+    place-items: center;
+    margin-bottom: 16px;
+}
+
+.tourBody {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 130px;
+}
+
+.tourStepLabel {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dg-teal-500, #20a69d);
+}
+
+.tourBody h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.tourBody p {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #52606d;
+}
+
+.tourLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--dg-teal-700, #087f78);
+    text-decoration: none;
+}
+
+.tourLink:hover {
+    text-decoration: underline;
+}
+
+.tourDots {
+    display: flex;
+    gap: 6px;
+    margin: 20px 0 22px;
+}
+
+.tourDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d8e2e2;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.tourDot.active {
+    background: var(--dg-teal-500, #20a69d);
+    transform: scale(1.3);
+}
+
+.tourFoot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+}
+
+.tourSkip {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 13.5px;
+    cursor: pointer;
+    padding: 8px 4px;
+}
+
+.tourSkip:hover {
+    color: #64748b;
+}
+
+.tourNav {
+    display: flex;
+    gap: 8px;
+}
+
+.tourNav button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #334155;
+}
+
+.tourNav button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tourNav button.primary {
+    background: var(--dg-teal-700, #087f78);
+    border-color: var(--dg-teal-700, #087f78);
+    color: #ffffff;
+}
+
+.tourNav button.primary:hover {
+    background: var(--dg-teal-900, #065e59);
+}

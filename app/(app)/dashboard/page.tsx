@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Circle } from "lucide-react";
+import { ArrowUpRight, Circle, Compass } from "lucide-react";
 import { useCollection } from "@/lib/firestore-hooks";
 import PillLoader from "@/components/PillLoader";
+import { useTour } from "@/lib/tour-context";
 import type { Patient, Doctor, Appointment, Payment } from "@/lib/types";
 
 function todayIso() {
@@ -26,6 +27,7 @@ const demoSteps = [
 ];
 
 export default function DashboardPage() {
+    const { startTour } = useTour();
     const { data: patients, loading: loadingPatients } = useCollection<Patient>("patients");
     const { data: doctors } = useCollection<Doctor>("doctors");
     const { data: appointments, loading: loadingAppts } = useCollection<Appointment>("appointments");
@@ -115,6 +117,9 @@ export default function DashboardPage() {
                             <h3>Run the Demo Script</h3>
                             <p className="subtitle">Click through end-to-end</p>
                         </div>
+                        <button className="cardActionBtn" aria-label="Start guided walkthrough" title="Start guided walkthrough" onClick={startTour}>
+                            <Compass size={15} />
+                        </button>
                     </div>
                     {demoSteps.map((step, i) => (
                         <Link key={i} href={step.href} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 8px", textDecoration: "none", color: "inherit" }}>
