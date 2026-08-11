@@ -4,9 +4,11 @@ import { FormEvent, useMemo, useState } from "react";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
 import { generateConsultationInvoice } from "@/lib/invoices";
+import { consultationToPreview } from "@/lib/invoice-preview";
 import type { Appointment, ConsultationInvoice, Doctor, Patient } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Drawer from "@/components/ui/Drawer";
+import InvoicePreviewModal from "@/components/InvoicePreviewModal";
 import PillLoader from "@/components/PillLoader";
 
 function defaultDueDate() {
@@ -24,6 +26,7 @@ export default function CreateInvoicePage() {
 
     const [target, setTarget] = useState<Appointment | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [previewInvoice, setPreviewInvoice] = useState<ConsultationInvoice | null>(null);
 
     const patientFor = (id: string) => patients.find((p) => p.id === id)?.name || "Unknown patient";
     const doctorFor = (id: string) => doctors.find((d) => d.id === id)?.name || "Unassigned";
@@ -135,7 +138,7 @@ export default function CreateInvoicePage() {
                             ) : (
                                 recent.map((inv) => (
                                     <tr key={inv.id}>
-                                        <td><b>{inv.invoiceNo}</b></td>
+                                        <td><button className="invoiceNoLink" onClick={() => setPreviewInvoice(inv)}>{inv.invoiceNo}</button></td>
                                         <td>{patientFor(inv.patientId)}</td>
                                         <td>{inv.items}</td>
                                         <td>₹{inv.amount.toLocaleString()}</td>
@@ -174,6 +177,13 @@ export default function CreateInvoicePage() {
                         </div>
                     </form>
                 </Drawer>
+            )}
+
+            {previewInvoice && (
+                <InvoicePreviewModal
+                    invoice={consultationToPreview(previewInvoice, patientFor(previewInvoice.patientId))}
+                    onClose={() => setPreviewInvoice(null)}
+                />
             )}
         </>
     );

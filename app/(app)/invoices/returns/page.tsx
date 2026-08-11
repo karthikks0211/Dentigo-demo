@@ -5,9 +5,11 @@ import { Plus } from "lucide-react";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
 import { processReturn } from "@/lib/pharmacy";
+import { pharmacyToPreview } from "@/lib/invoice-preview";
 import type { PharmacyInvoice, Patient, SalesReturn, SalesReturnAction } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Drawer from "@/components/ui/Drawer";
+import InvoicePreviewModal from "@/components/InvoicePreviewModal";
 import PillLoader from "@/components/PillLoader";
 
 export default function ReturnsPage() {
@@ -22,6 +24,7 @@ export default function ReturnsPage() {
     const [invoiceId, setInvoiceId] = useState("");
     const [lineIndex, setLineIndex] = useState(0);
     const [submitting, setSubmitting] = useState(false);
+    const [previewInvoice, setPreviewInvoice] = useState<PharmacyInvoice | null>(null);
 
     const selectedInvoice = pharmacyInvoices.find((i) => i.id === invoiceId) || null;
     const selectedLine = selectedInvoice?.lines[lineIndex] || null;
@@ -103,7 +106,17 @@ export default function ReturnsPage() {
                                 sorted.map((r) => (
                                     <tr key={r.id}>
                                         <td><b>{r.name}</b></td>
-                                        <td>{r.pharmacyInvoiceNo}</td>
+                                        <td>
+                                            <button
+                                                className="invoiceNoLink"
+                                                onClick={() => {
+                                                    const inv = pharmacyInvoices.find((i) => i.id === r.pharmacyInvoiceId);
+                                                    if (inv) setPreviewInvoice(inv);
+                                                }}
+                                            >
+                                                {r.pharmacyInvoiceNo}
+                                            </button>
+                                        </td>
                                         <td>{r.qty}</td>
                                         <td><Badge status={r.action} /></td>
                                         <td>{r.reason}</td>
@@ -162,6 +175,13 @@ export default function ReturnsPage() {
                         </label>
                     </form>
                 </Drawer>
+            )}
+
+            {previewInvoice && (
+                <InvoicePreviewModal
+                    invoice={pharmacyToPreview(previewInvoice, patientFor(previewInvoice.patientId))}
+                    onClose={() => setPreviewInvoice(null)}
+                />
             )}
         </>
     );

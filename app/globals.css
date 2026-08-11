@@ -3225,6 +3225,7 @@ nav button:hover {
     align-items: center;
     gap: 10px;
     font-size: 17px;
+    color: #dbf7f3 !important;
 }
 
 .navGroupToggle .navGroupIcon {
@@ -3234,7 +3235,7 @@ nav button:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #d8f5f0;
+    color: #dbf7f3 !important;
 }
 
 .navGroupChevron {
@@ -3756,11 +3757,14 @@ nav button:hover {
     }
 
     .labelSheet,
-    .labelSheet * {
+    .labelSheet *,
+    .invoicePrintArea,
+    .invoicePrintArea * {
         visibility: visible;
     }
 
-    .labelSheet {
+    .labelSheet,
+    .invoicePrintArea {
         position: absolute;
         left: 0;
         top: 0;
@@ -3774,6 +3778,134 @@ nav button:hover {
     .aiPanel {
         display: none !important;
     }
+}
+
+/* ==========================================================================
+   Invoice number link & invoice preview modal
+   ========================================================================== */
+.invoiceNoLink {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: #087f78;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color .15s ease;
+}
+
+.invoiceNoLink:hover {
+    text-decoration-color: #087f78;
+}
+
+.invoicePreviewCard {
+    max-width: 640px;
+}
+
+.invoicePrintArea {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.invoicePreviewHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eef3f3;
+}
+
+.invoicePreviewHead strong {
+    font-size: 18px;
+    color: #0f2d37;
+}
+
+.invoicePreviewHead p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.invoicePreviewMeta {
+    text-align: right;
+    display: grid;
+    gap: 4px;
+}
+
+.invoicePreviewMeta p {
+    margin: 0;
+    font-size: 13px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.invoicePreviewMeta span {
+    color: #64748b;
+}
+
+.invoicePreviewMeta b {
+    color: #1e293b;
+    min-width: 90px;
+    text-align: right;
+}
+
+.invoicePreviewParty {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.invoicePreviewParty span {
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.invoicePreviewParty b {
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.invoicePreviewTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.invoicePreviewTable th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #64748b;
+    padding: 8px 4px;
+    border-bottom: 1px solid #eef3f3;
+}
+
+.invoicePreviewTable td {
+    padding: 10px 4px;
+    border-bottom: 1px solid #f5f7f7;
+    color: #334155;
+}
+
+.invoicePreviewTable th:not(:first-child),
+.invoicePreviewTable td:not(:first-child) {
+    text-align: right;
+}
+
+.invoicePreviewTable tfoot td {
+    border-bottom: none;
+    border-top: 2px solid #eef3f3;
+    font-weight: 700;
+    color: #0f2d37;
+    font-size: 15px;
 }
 
 /* ==========================================================================

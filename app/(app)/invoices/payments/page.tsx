@@ -5,8 +5,10 @@ import { Banknote, CreditCard, Sparkles } from "lucide-react";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
 import { recordPayment } from "@/lib/invoices";
+import { consultationToPreview, pharmacyToPreview, type InvoicePreviewData } from "@/lib/invoice-preview";
 import type { ConsultationInvoice, Patient, Payment, PaymentInvoiceType, PharmacyInvoice } from "@/lib/types";
 import Drawer from "@/components/ui/Drawer";
+import InvoicePreviewModal from "@/components/InvoicePreviewModal";
 import PaymentSimModal from "@/components/PaymentSimModal";
 import PillLoader from "@/components/PillLoader";
 
@@ -31,6 +33,18 @@ export default function PaymentsPage() {
     const [target, setTarget] = useState<Outstanding | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [showRazorpay, setShowRazorpay] = useState(false);
+    const [previewRef, setPreviewRef] = useState<{ invoiceId: string; invoiceType: PaymentInvoiceType } | null>(null);
+
+    function previewFor(invoiceId: string, invoiceType: PaymentInvoiceType): InvoicePreviewData | null {
+        if (invoiceType === "Consultation") {
+            const inv = consultations.find((i) => i.id === invoiceId);
+            return inv ? consultationToPreview(inv, patientFor(inv.patientId)) : null;
+        }
+        const inv = pharmacy.find((i) => i.id === invoiceId);
+        return inv ? pharmacyToPreview(inv, patientFor(inv.patientId)) : null;
+    }
+
+    const previewData = previewRef ? previewFor(previewRef.invoiceId, previewRef.invoiceType) : null;
 
     const paidPharmacyInvoiceIds = useMemo(
         () => new Set(payments.filter((p) => p.invoiceType === "Pharmacy").map((p) => p.invoiceId)),
@@ -98,7 +112,7 @@ export default function PaymentsPage() {
                             ) : (
                                 outstanding.map((o) => (
                                     <tr key={`${o.invoiceType}-${o.invoiceId}`}>
-                                        <td><b>{o.invoiceNo}</b></td>
+                                        <td><button className="invoiceNoLink" onClick={() => setPreviewRef({ invoiceId: o.invoiceId, invoiceType: o.invoiceType })}>{o.invoiceNo}</button></td>
                                         <td><span className={`badge ${o.invoiceType === "Pharmacy" ? "teal" : "confirmed"}`}><i />{o.invoiceType}</span></td>
                                         <td>{patientFor(o.patientId)}</td>
                                         <td>₹{o.amount.toLocaleString()}</td>
@@ -133,7 +147,7 @@ export default function PaymentsPage() {
                             ) : (
                                 history.map((p) => (
                                     <tr key={p.id}>
-                                        <td><b>{p.invoiceNo}</b></td>
+                                        <td><button className="invoiceNoLink" onClick={() => setPreviewRef({ invoiceId: p.invoiceId, invoiceType: p.invoiceType })}>{p.invoiceNo}</button></td>
                                         <td>{patientFor(p.patientId)}</td>
                                         <td>₹{p.amount.toLocaleString()}</td>
                                         <td>{p.method === "razorpay_sim" ? "Razorpay" : p.method}</td>
@@ -174,6 +188,10 @@ export default function PaymentsPage() {
                     onClose={() => setShowRazorpay(false)}
                     onSuccess={() => submitPayment("razorpay_sim")}
                 />
+            )}
+
+            {previewData && (
+                <InvoicePreviewModal invoice={previewData} onClose={() => setPreviewRef(null)} />
             )}
         </>
     );

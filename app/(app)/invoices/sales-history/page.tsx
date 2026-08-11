@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useCollection } from "@/lib/firestore-hooks";
+import { consultationToPreview, pharmacyToPreview, type InvoicePreviewData } from "@/lib/invoice-preview";
 import type { ConsultationInvoice, Patient, PharmacyInvoice } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
+import InvoicePreviewModal from "@/components/InvoicePreviewModal";
 import PillLoader from "@/components/PillLoader";
 
 type Row = {
@@ -23,6 +25,7 @@ export default function SalesHistoryPage() {
     const { data: pharmacy, loading: l2 } = useCollection<PharmacyInvoice>("pharmacyInvoices");
     const { data: patients } = useCollection<Patient>("patients");
     const [query, setQuery] = useState("");
+    const [previewRef, setPreviewRef] = useState<{ id: string; type: "Consultation" | "Pharmacy" } | null>(null);
 
     const patientFor = (id: string) => patients.find((p) => p.id === id)?.name || "Unknown patient";
 
@@ -45,6 +48,17 @@ export default function SalesHistoryPage() {
     }, [rows, query, patients]);
 
     const totalSales = rows.reduce((sum, r) => sum + r.amount, 0);
+
+    function previewFor(id: string, type: "Consultation" | "Pharmacy"): InvoicePreviewData | null {
+        if (type === "Consultation") {
+            const inv = consultations.find((i) => i.id === id);
+            return inv ? consultationToPreview(inv, patientFor(inv.patientId)) : null;
+        }
+        const inv = pharmacy.find((i) => i.id === id);
+        return inv ? pharmacyToPreview(inv, patientFor(inv.patientId)) : null;
+    }
+
+    const previewData = previewRef ? previewFor(previewRef.id, previewRef.type) : null;
 
     if (l1 || l2) return <PillLoader label="Loading sales history…" />;
 
@@ -90,7 +104,7 @@ export default function SalesHistoryPage() {
                             ) : (
                                 filtered.map((r) => (
                                     <tr key={`${r.type}-${r.id}`}>
-                                        <td><b>{r.invoiceNo}</b></td>
+                                        <td><button className="invoiceNoLink" onClick={() => setPreviewRef({ id: r.id, type: r.type })}>{r.invoiceNo}</button></td>
                                         <td><span className={`badge ${r.type === "Pharmacy" ? "teal" : "confirmed"}`}><i />{r.type}</span></td>
                                         <td>{patientFor(r.patientId)}</td>
                                         <td>{r.description}</td>
@@ -104,6 +118,10 @@ export default function SalesHistoryPage() {
                     </table>
                 </div>
             </div>
+
+            {previewData && (
+                <InvoicePreviewModal invoice={previewData} onClose={() => setPreviewRef(null)} />
+            )}
         </>
     );
 }
