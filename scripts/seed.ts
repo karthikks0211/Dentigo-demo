@@ -328,6 +328,67 @@ async function main() {
         "ret-2": { pharmacyInvoiceId: "pinv-2", pharmacyInvoiceNo: "PH-202608-0002", medicineId: "med-metronidazole", name: "Metronidazole 400mg", batchId: "batch-metro-1", qty: 2, action: "Writeoff", reason: "Blister pack damaged", date: daysFromNow(-3) }
     });
 
+    // ---------------------------------------------------------------------- diagnosis reports
+    await seedCollection("diagnosisReports", {
+        "diag-1": {
+            patientId: "pat-ananya",
+            doctorId: "doc-priya",
+            appointmentId: "appt-1",
+            reportType: "Dental X-Ray (IOPA/OPG)",
+            title: "Pre-Operative IOPA X-Ray - Upper Right Molar",
+            toothNumber: "16",
+            clinicalNotes: "Periapical radiolucency observed around the mesiobuccal root of #16. Pulp vitality negative. Advised endodontic therapy.",
+            fileUrl: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80",
+            fileName: "IOPA_Ananya_Tooth16.jpg",
+            fileSizeBytes: 1485000,
+            mimeType: "image/jpeg",
+            reportDate: daysFromNow(-2)
+        },
+        "diag-2": {
+            patientId: "pat-priya",
+            doctorId: "doc-rajesh",
+            appointmentId: "appt-3",
+            reportType: "Dental X-Ray (IOPA/OPG)",
+            title: "Post-Obturation IOPA X-Ray",
+            toothNumber: "46",
+            clinicalNotes: "Root canals obturated with gutta-percha to working length. Adequate apical seal noted. Scheduled for composite core and crown.",
+            fileUrl: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1200&q=80",
+            fileName: "IOPA_Priya_Tooth46_PostRCT.jpg",
+            fileSizeBytes: 1820000,
+            mimeType: "image/jpeg",
+            reportDate: daysFromNow(-1)
+        },
+        "diag-3": {
+            patientId: "pat-arjunk",
+            doctorId: "doc-rajesh",
+            appointmentId: "appt-4",
+            reportType: "CBCT / CT Scan",
+            title: "Pre-Implant Sectional CBCT Scan",
+            toothNumber: "36",
+            clinicalNotes: "Available alveolar bone height: 11.8mm, width: 7.2mm. Safe distance of 3.4mm from the inferior alveolar canal. Suitable for 4.2 x 10mm implant.",
+            fileUrl: "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=1200&q=80",
+            fileName: "CBCT_Arjun_Mandible_36.jpg",
+            fileSizeBytes: 4520000,
+            mimeType: "image/jpeg",
+            reportDate: daysFromNow(-8)
+        },
+        "diag-4": {
+            patientId: "pat-rohan",
+            doctorId: "doc-priya",
+            appointmentId: "appt-2",
+            reportType: "Blood Test",
+            title: "Pre-Surgical Coagulation & Complete Blood Count",
+            toothNumber: "",
+            clinicalNotes: "Hb: 14.2 g/dL, Platelets: 245,000 /mcL, PT/INR: 1.05 (Normal). Cleared for surgical extraction of impacted mandibular 3rd molar.",
+            fileUrl: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1200&q=80",
+            fileName: "CBC_PTINR_RohanVerma.pdf",
+            fileSizeBytes: 890000,
+            mimeType: "application/pdf",
+            reportDate: daysFromNow(-4)
+        }
+    });
+
+
     // Must run after every staff-authenticated write above — see the doc
     // comment on seedPatientAccounts for why.
     await seedPatientAccounts(patients);

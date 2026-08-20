@@ -1,5 +1,5 @@
 import {
-    LayoutGrid, Stethoscope, Users, CalendarDays, Pill,
+    LayoutGrid, Stethoscope, Users, CalendarDays, Pill, Activity,
     Boxes, Layers, ArrowLeftRight, ClipboardList, Truck,
     CalendarClock, AlertTriangle, Barcode, Receipt, FilePlus2,
     History, Undo2, Wallet, BookOpen, BarChart3
@@ -30,6 +30,8 @@ export const navConfig: NavEntry[] = [
     { label: "Patients", href: "/patients", icon: Users },
     { label: "Appointments", href: "/appointments", icon: CalendarDays },
     { label: "Prescriptions", href: "/prescriptions", icon: Pill },
+    { label: "Diagnosis", href: "/diagnosis", icon: Activity },
+
     {
         label: "Inventory",
         icon: Boxes,

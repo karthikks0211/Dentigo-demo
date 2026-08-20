@@ -83,6 +83,11 @@ service cloud.firestore {
       allow read: if ownsPatientDoc(resource.data.patientId);
     }
 
+    match /diagnosisReports/{id} {
+      allow read, write: if isStaff();
+      allow read: if ownsPatientDoc(resource.data.patientId);
+    }
+
     match /pharmacyInvoices/{id} {
       allow read, write: if isStaff();
       allow read: if ownsPatientDoc(resource.data.patientId);

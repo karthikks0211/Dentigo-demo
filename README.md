@@ -16,8 +16,9 @@ npm install
 1. Create a project at [console.firebase.google.com](https://console.firebase.google.com).
 2. **Build → Authentication → Get started** → enable the **Email/Password** sign-in method.
 3. **Build → Firestore Database → Create database** → start in test mode (see [Security rules](#4-security-rules) below before going further than a demo).
-4. **⚙️ Project settings → Your apps → `</>` (Web)** → register an app (skip Firebase Hosting) → copy the `firebaseConfig` values.
 5. Copy `.env.example` to `.env.local` and fill in the six `NEXT_PUBLIC_FIREBASE_*` values.
+6. *(Optional)* For cloud-hosted document & diagnostic scan uploads, create a free account at [cloudinary.com](https://cloudinary.com), create an unsigned upload preset (Settings → Upload → Add upload preset), and fill in `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` and `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`. (If omitted, a zero-config base64 local fallback is used automatically).
+
 
 ### Seed data
 

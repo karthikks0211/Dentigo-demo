@@ -202,3 +202,35 @@ export type SalesReturn = {
     date: string;
     createdAt: number;
 };
+
+export type DiagnosisReportType =
+    | "Dental X-Ray (IOPA/OPG)"
+    | "CBCT / CT Scan"
+    | "Blood Test"
+    | "MRI"
+    | "Biopsy / Pathology"
+    | "ECG"
+    | "Endoscopy"
+    | "Other";
+
+export type DiagnosisReport = {
+    id: string;
+    patientId: string;
+    doctorId: string;
+    appointmentId?: string;
+    reportType: DiagnosisReportType;
+    title: string;
+    toothNumber?: string;
+    clinicalNotes: string;
+    fileUrl: string;
+    publicId?: string; // Cloudinary public_id for asset management/deletion
+    storageProvider?: "cloudinary" | "local" | "firebase";
+    storagePath?: string;
+    fileName: string;
+    fileSizeBytes: number;
+    mimeType: string;
+    reportDate: string; // ISO date YYYY-MM-DD
+    createdAt: number;
+};
+
+
