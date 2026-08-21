@@ -124,9 +124,34 @@ service cloud.firestore {
     match /stockTransactions/{id} { allow read, write: if isStaff(); }
     match /salesReturns/{id} { allow read, write: if isStaff(); }
 
+    // ------------------------------------------------------- custom claims helpers
+    function isPatient() {
+      return isSignedIn() && request.auth.token.role == "patient";
+    }
+    function isDoctor() {
+      return isSignedIn() && request.auth.token.role == "doctor";
+    }
+    function tokenPatientId() {
+      return request.auth.token.patientId;
+    }
+    function tokenDoctorId() {
+      return request.auth.token.doctorId;
+    }
+
+    // ------------------------------------------------------- doctor & patient portal overrides
+    match /inventory/{id} {
+      allow read: if isStaff() || isDoctor();
+      allow write: if isStaff();
+    }
+
+    match /inventoryUsage/{id} {
+      allow read, create: if isStaff() || isDoctor();
+    }
+
     // Safe default for anything not covered above.
     match /{document=**} {
       allow read, write: if isStaff();
     }
   }
 }
+

@@ -4201,3 +4201,36 @@ nav button:hover {
 .tourNav button.primary:hover {
     background: var(--dg-teal-900, #065e59);
 }
+
+/* ===== PATIENT PORTAL ===== */
+.patientSidebar {
+    width: 250px;
+    background: #087f78;
+    color: #fff;
+    position: fixed;
+    inset: 0 auto 0 0;
+    padding: 27px 12px 19px;
+    display: flex;
+    flex-direction: column;
+    z-index: 3;
+}
+
+.activeNav {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* ===== DOCTOR PORTAL ===== */
+.doctorSidebar {
+    width: 250px;
+    background: #0369a1;
+    color: #fff;
+    position: fixed;
+    inset: 0 auto 0 0;
+    padding: 27px 12px 19px;
+    display: flex;
+    flex-direction: column;
+    z-index: 3;
+}
+

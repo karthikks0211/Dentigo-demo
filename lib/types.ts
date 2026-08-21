@@ -233,4 +233,25 @@ export type DiagnosisReport = {
     createdAt: number;
 };
 
+export type InventoryItem = {
+    id: string;
+    itemName: string;
+    stockQty: number;
+    unit: string;
+    reorderLevel: number;
+    createdAt: number;
+};
+
+export type InventoryUsage = {
+    id: string;
+    appointmentId: string;
+    invoiceId?: string;
+    itemId: string;
+    itemName: string;
+    qtyUsed: number;
+    date: string;
+    createdAt: number;
+};
+
+
 

@@ -144,11 +144,22 @@ async function main() {
                 { day: "Sat", startTime: "09:00", endTime: "13:00", slotDurationMins: 60 }
             ],
             blockedDates: []
+        },
+        "doc-strange": {
+            name: "Dr. Stephen Strange", specialty: "Maxillofacial & Cosmetic Dentistry", phone: "+91 98765 11111",
+            email: "dr.strange@clinic.com", photoColor: "#0369a1",
+            weeklyAvailability: [
+                { day: "Mon", startTime: "09:00", endTime: "17:00", slotDurationMins: 30 },
+                { day: "Wed", startTime: "09:00", endTime: "17:00", slotDurationMins: 30 },
+                { day: "Fri", startTime: "09:00", endTime: "17:00", slotDurationMins: 30 }
+            ],
+            blockedDates: []
         }
     });
 
     // --------------------------------------------------------------- patients
     const patients = {
+        "pat-john": { name: "John", email: "john@patient.com", phone: "+91 98765 22222", age: 35, gender: "Male", address: "742 Evergreen Terrace, Springfield" },
         "pat-ananya": { name: "Ananya Sharma", email: "ananya.sharma@email.com", phone: "+91 98765 43210", age: 32, gender: "Female", address: "B-402, Green Glen Layout, Bangalore" },
         "pat-rohan": { name: "Rohan Mehta", email: "rohan.mehta@email.com", phone: "+91 98201 76432", age: 45, gender: "Male", address: "12/A Park Street, Mumbai" },
         "pat-priya": { name: "Priya Nair", email: "priya.nair@email.com", phone: "+91 99876 14208", age: 28, gender: "Female", address: "45 MG Road, Kochi" },

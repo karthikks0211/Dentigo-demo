@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
     signOut as firebaseSignOut,
     User
 } from "firebase/auth";
@@ -31,7 +32,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signIn = async (email: string, password: string) => {
-        await signInWithEmailAndPassword(auth, email, password);
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err: any) {
+            if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    return;
+                } catch (createErr) {
+                    throw err;
+                }
+            }
+            throw err;
+        }
     };
 
     const signOut = async () => {
@@ -44,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         </AuthContext.Provider>
     );
 }
+
 
 export function useAuth() {
     const ctx = useContext(AuthContext);
