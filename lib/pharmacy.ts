@@ -1,9 +1,9 @@
 import {
     collection, doc, getDocs, query, where,
-    runTransaction, writeBatch, Timestamp
+    runTransaction, Timestamp, type Transaction, type DocumentSnapshot
 } from "firebase/firestore";
 import { db } from "./firebase";
-import type { Batch, Prescription, PurchaseOrder, SalesReturnAction } from "./types";
+import type { Batch, Prescription, SalesReturnAction } from "./types";
 
 export type DispenseAllocationLine = {
     medicineId: string;
@@ -67,9 +67,88 @@ export async function planDispense(prescription: Prescription): Promise<Dispense
 }
 
 /**
+ * Reads the batch docs a dispense plan allocates from, inside an in-flight
+ * transaction. Split out from commitDispense so a caller composing a bigger
+ * transaction (POS checkout, which also writes a consultation invoice) can
+ * do this read alongside its own — Firestore requires every tx.get() across
+ * a transaction to happen before any tx.set()/tx.update().
+ */
+export async function readDispenseBatchSnaps(tx: Transaction, plan: DispensePlan): Promise<DocumentSnapshot[]> {
+    const batchRefs = plan.lines.map((l) => doc(db, "batches", l.batchId));
+    return Promise.all(batchRefs.map((ref) => tx.get(ref)));
+}
+
+/** Throws if any allocated batch no longer has enough stock — re-check right before committing. */
+export function assertBatchesAvailable(plan: DispensePlan, batchSnaps: DocumentSnapshot[]): void {
+    batchSnaps.forEach((snap, i) => {
+        const line = plan.lines[i];
+        const current = snap.data() as Batch | undefined;
+        if (!current || current.quantityRemaining < line.qty) {
+            throw new Error(`${line.name} batch ${line.batchNo} no longer has enough stock — someone else may have dispensed it first.`);
+        }
+    });
+}
+
+/**
+ * Writes the dispense side-effects (batch deduction, stock transactions,
+ * pharmacy invoice, prescription.dispensed flag) into an in-flight
+ * transaction. Assumes assertBatchesAvailable already passed. Returns the
+ * new pharmacy invoice's doc id.
+ */
+export function writeDispense(
+    tx: Transaction,
+    prescription: Prescription,
+    plan: DispensePlan,
+    batchSnaps: DocumentSnapshot[],
+    invoiceNo: string
+): string {
+    const batchRefs = plan.lines.map((l) => doc(db, "batches", l.batchId));
+    const date = new Date().toISOString().slice(0, 10);
+
+    batchSnaps.forEach((snap, i) => {
+        const line = plan.lines[i];
+        const current = snap.data() as Batch;
+        tx.update(batchRefs[i], { quantityRemaining: current.quantityRemaining - line.qty });
+
+        const stRef = doc(collection(db, "stockTransactions"));
+        tx.set(stRef, {
+            medicineId: line.medicineId,
+            batchId: line.batchId,
+            type: "Dispense",
+            qty: -line.qty,
+            refId: prescription.id,
+            date,
+            createdAt: Timestamp.now().toMillis()
+        });
+    });
+
+    const invoiceRef = doc(collection(db, "pharmacyInvoices"));
+    tx.set(invoiceRef, {
+        invoiceNo,
+        patientId: prescription.patientId,
+        prescriptionId: prescription.id,
+        appointmentId: prescription.appointmentId,
+        lines: plan.lines,
+        totalAmount: plan.totalAmount,
+        date,
+        createdAt: Timestamp.now().toMillis()
+    });
+
+    tx.update(doc(db, "prescriptions", prescription.id), { dispensed: true });
+    return invoiceRef.id;
+}
+
+/**
  * Commits a previously computed dispense plan: deducts each allocated batch,
  * logs a stock transaction per batch touched, creates the pharmacy invoice,
- * and marks the prescription dispensed — all atomically.
+ * and marks the prescription dispensed — all atomically. Stock/money should
+ * only ever move together at the moment a POS payment is confirmed, so this
+ * is called from lib/pos.ts's checkoutVisit (composing
+ * readDispenseBatchSnaps/assertBatchesAvailable/writeDispense directly inside
+ * its own bigger transaction), not from the Prescriptions page anymore — a
+ * "Dispense" click there just flags the prescription readyForPos so it shows
+ * up as a pending line on the token in POS. Kept as a standalone entry point
+ * for any future non-POS commit path.
  */
 export async function commitDispense(
     prescription: Prescription,
@@ -77,99 +156,16 @@ export async function commitDispense(
     invoiceNo: string
 ): Promise<void> {
     await runTransaction(db, async (tx) => {
-        const batchRefs = plan.lines.map((l) => doc(db, "batches", l.batchId));
-        const batchSnaps = await Promise.all(batchRefs.map((ref) => tx.get(ref)));
-
-        batchSnaps.forEach((snap, i) => {
-            const line = plan.lines[i];
-            const current = snap.data() as Batch | undefined;
-            if (!current || current.quantityRemaining < line.qty) {
-                throw new Error(`${line.name} batch ${line.batchNo} no longer has enough stock — someone else may have dispensed it first.`);
-            }
-        });
-
-        batchSnaps.forEach((snap, i) => {
-            const line = plan.lines[i];
-            const current = snap.data() as Batch;
-            tx.update(batchRefs[i], { quantityRemaining: current.quantityRemaining - line.qty });
-
-            const stRef = doc(collection(db, "stockTransactions"));
-            tx.set(stRef, {
-                medicineId: line.medicineId,
-                batchId: line.batchId,
-                type: "Dispense",
-                qty: -line.qty,
-                refId: prescription.id,
-                date: new Date().toISOString().slice(0, 10),
-                createdAt: Timestamp.now().toMillis()
-            });
-        });
-
-        const invoiceRef = doc(collection(db, "pharmacyInvoices"));
-        tx.set(invoiceRef, {
-            invoiceNo,
-            patientId: prescription.patientId,
-            prescriptionId: prescription.id,
-            lines: plan.lines,
-            totalAmount: plan.totalAmount,
-            date: new Date().toISOString().slice(0, 10),
-            createdAt: Timestamp.now().toMillis()
-        });
-
-        tx.update(doc(db, "prescriptions", prescription.id), { dispensed: true });
+        const batchSnaps = await readDispenseBatchSnaps(tx, plan);
+        assertBatchesAvailable(plan, batchSnaps);
+        writeDispense(tx, prescription, plan, batchSnaps, invoiceNo);
     });
 }
 
-export type ReceivedLine = {
-    medicineId: string;
-    name: string;
-    qty: number;
-    unitCost: number;
-    batchNo: string;
-    expiryDate: string;
-    mrp: number;
-};
-
-/**
- * Receiving a purchase order is what actually creates stock: one batch per
- * line, plus a matching Receipt stock transaction, plus flipping the PO to
- * Received — all in a single atomic write.
- */
-export async function receivePurchaseOrder(po: PurchaseOrder, lines: ReceivedLine[]): Promise<void> {
-    const batchWrite = writeBatch(db);
-    const today = new Date().toISOString().slice(0, 10);
-
-    for (const line of lines) {
-        const batchRef = doc(collection(db, "batches"));
-        batchWrite.set(batchRef, {
-            medicineId: line.medicineId,
-            batchNo: line.batchNo,
-            expiryDate: line.expiryDate,
-            quantityReceived: line.qty,
-            quantityRemaining: line.qty,
-            unitCost: line.unitCost,
-            mrp: line.mrp,
-            supplierId: po.supplierId,
-            poId: po.id,
-            receivedDate: today,
-            createdAt: Timestamp.now().toMillis()
-        });
-
-        const stRef = doc(collection(db, "stockTransactions"));
-        batchWrite.set(stRef, {
-            medicineId: line.medicineId,
-            batchId: batchRef.id,
-            type: "Receipt",
-            qty: line.qty,
-            refId: po.id,
-            date: today,
-            createdAt: Timestamp.now().toMillis()
-        });
-    }
-
-    batchWrite.update(doc(db, "purchaseOrders", po.id), { status: "Received", receivedDate: today });
-    await batchWrite.commit();
-}
+// Purchase-order receiving used to live here as a single-shot writeBatch.
+// It's been superseded by receiveGoods() in lib/procurement.ts, which adds
+// partial deliveries, duplicate-batch merging, and PO status-machine
+// validation — see that file for the full PR -> PO -> GRN flow.
 
 /**
  * Processes a sales return against a dispensed pharmacy invoice line. Restock

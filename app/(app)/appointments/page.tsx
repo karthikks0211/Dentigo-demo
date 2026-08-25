@@ -7,6 +7,8 @@ import { Plus, Search, Trash2 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
+import { useAuth } from "@/lib/auth-context";
+import { logAppointmentEvent } from "@/lib/audit";
 import type { Appointment, AppointmentStatus, Doctor, Patient } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -19,6 +21,8 @@ export default function AppointmentsPage() {
     const { data: patients } = useCollection<Patient>("patients");
     const { data: doctors } = useCollection<Doctor>("doctors");
     const showToast = useToast();
+    const { user } = useAuth();
+    const actorEmail = user?.email || "unknown";
 
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
@@ -48,6 +52,12 @@ export default function AppointmentsPage() {
     async function changeStatus(a: Appointment, status: AppointmentStatus) {
         try {
             await updateDoc(doc(db, "appointments", a.id), { status });
+            await logAppointmentEvent({
+                appointmentId: a.id,
+                action: "StatusChanged",
+                detail: `${a.status} → ${status}`,
+                byEmail: actorEmail
+            });
             showToast(`Marked ${status.toLowerCase()}`);
         } catch {
             showToast("Couldn't update status", "error");

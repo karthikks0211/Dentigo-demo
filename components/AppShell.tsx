@@ -14,12 +14,20 @@ function initials(email: string) {
     return email.slice(0, 2).toUpperCase();
 }
 
+// A nav path is "active" for a given href if it's an exact match or a
+// sub-route of it (pathname.startsWith(href) alone would also match a
+// sibling item whose href happens to be a prefix, e.g. "/appointments" is a
+// prefix of "/appointments/audit-log").
+function matchesNavHref(pathname: string, href: string): boolean {
+    return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function findCrumb(pathname: string): string {
     for (const entry of navConfig) {
         if (isNavGroup(entry)) {
-            const match = entry.items.find((i) => pathname.startsWith(i.href));
+            const match = entry.items.find((i) => matchesNavHref(pathname, i.href));
             if (match) return `${entry.label} / ${match.label}`;
-        } else if (pathname.startsWith(entry.href)) {
+        } else if (matchesNavHref(pathname, entry.href)) {
             return entry.label;
         }
     }
@@ -27,7 +35,7 @@ function findCrumb(pathname: string): string {
 }
 
 function NavGroupSection({ group, pathname }: { group: NavGroup; pathname: string }) {
-    const containsActive = group.items.some((i) => pathname.startsWith(i.href));
+    const containsActive = group.items.some((i) => matchesNavHref(pathname, i.href));
     const [open, setOpen] = useState(containsActive);
     const GroupIcon = group.icon;
 
@@ -43,7 +51,7 @@ function NavGroupSection({ group, pathname }: { group: NavGroup; pathname: strin
                 <div className="navGroupItems">
                     {group.items.map((item) => {
                         const ItemIcon = item.icon;
-                        const active = pathname.startsWith(item.href);
+                        const active = matchesNavHref(pathname, item.href);
                         return (
                             <Link key={item.href} href={item.href} className={active ? "active" : ""}>
                                 <span><ItemIcon size={15} /></span>{item.label}
@@ -87,7 +95,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                             <Link
                                 key={entry.href}
                                 href={entry.href}
-                                className={pathname.startsWith(entry.href) ? "active" : ""}
+                                className={matchesNavHref(pathname, entry.href) ? "active" : ""}
                             >
                                 <span><entry.icon size={18} /></span>{entry.label}
                             </Link>

@@ -5,7 +5,7 @@ import { ArrowUpRight, Circle, Compass } from "lucide-react";
 import { useCollection } from "@/lib/firestore-hooks";
 import PillLoader from "@/components/PillLoader";
 import { useTour } from "@/lib/tour-context";
-import type { Patient, Doctor, Appointment, Payment } from "@/lib/types";
+import type { Patient, Doctor, Appointment, Payment, Employee, AttendanceEntry } from "@/lib/types";
 
 function todayIso() {
     return new Date().toISOString().slice(0, 10);
@@ -19,11 +19,13 @@ function initials(n: string) {
 const demoSteps = [
     { label: "Add a doctor and set their weekly availability", href: "/doctors" },
     { label: "Book an appointment for a patient", href: "/book" },
-    { label: "Generate a consultation invoice from that appointment", href: "/invoices/create" },
-    { label: "Record a cash or card payment against it", href: "/invoices/payments" },
-    { label: "Write a prescription for the patient", href: "/prescriptions" },
-    { label: "Dispense it — watch FEFO pull from the earliest-expiring batch", href: "/prescriptions" },
-    { label: "Check the ledger and revenue report reflect both payments", href: "/ledger" }
+    { label: "Mark the appointment Completed once the visit is done", href: "/appointments" },
+    { label: "Write a prescription for the patient and send it to POS", href: "/prescriptions" },
+    { label: "Settle the patient's token — dispense (FEFO) and pay — on Point of Sale", href: "/pos" },
+    { label: "Check its status history on the Appointment Audit Log", href: "/appointments/audit-log" },
+    { label: "Mark today's staff attendance", href: "/hr/attendance" },
+    { label: "Generate this month's payroll", href: "/hr/payroll" },
+    { label: "Check the ledger and revenue report reflect every payment", href: "/ledger" }
 ];
 
 export default function DashboardPage() {
@@ -32,12 +34,19 @@ export default function DashboardPage() {
     const { data: doctors } = useCollection<Doctor>("doctors");
     const { data: appointments, loading: loadingAppts } = useCollection<Appointment>("appointments");
     const { data: payments } = useCollection<Payment>("payments");
+    const { data: employees } = useCollection<Employee>("employees");
+    const { data: attendance } = useCollection<AttendanceEntry>("attendance");
 
     const loading = loadingPatients || loadingAppts;
     const today = todayIso();
     const todayAppts = appointments.filter((a) => a.date === today);
     const pendingAppts = appointments.filter((a) => a.status === "Pending");
     const revenue = payments.reduce((sum, p) => sum + p.amount, 0);
+
+    const todaysPayments = payments.filter((p) => p.date === today);
+    const revenueToday = todaysPayments.reduce((sum, p) => sum + p.amount, 0);
+    const activeEmployees = employees.filter((e) => e.active);
+    const presentToday = attendance.filter((a) => a.date === today && (a.status === "Present" || a.status === "Half Day")).length;
 
     const patientFor = (id: string) => patients.find((p) => p.id === id)?.name || "Unknown patient";
     const doctorFor = (id: string) => doctors.find((d) => d.id === id)?.name || "Unassigned";
@@ -75,6 +84,19 @@ export default function DashboardPage() {
                     <div className="statTop"><p>Revenue Collected</p></div>
                     <h2>₹ {revenue.toLocaleString()}</h2>
                     <div className="statBottom"><small className="statSubtitle">from recorded payments</small></div>
+                </div>
+            </div>
+
+            <div className="stats" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+                <div className="stat">
+                    <div className="statTop"><p>Revenue Today</p></div>
+                    <h2>₹ {revenueToday.toLocaleString()}</h2>
+                    <div className="statBottom"><small className="statSubtitle">{todaysPayments.length} payment{todaysPayments.length === 1 ? "" : "s"} collected</small></div>
+                </div>
+                <div className="stat">
+                    <div className="statTop"><p>Staff Present Today</p></div>
+                    <h2>{presentToday}/{activeEmployees.length}</h2>
+                    <div className="statBottom"><small className="statSubtitle">of active employees</small></div>
                 </div>
             </div>
 

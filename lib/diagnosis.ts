@@ -74,12 +74,13 @@ export async function uploadToCloudinary(
 export type UploadReportParams = {
     patientId: string;
     doctorId: string;
-    appointmentId?: string;
+    appointmentId: string;
     reportType: DiagnosisReportType;
     title: string;
     toothNumber?: string;
     clinicalNotes: string;
     reportDate: string;
+    fee?: number;
     file: File;
 };
 
@@ -97,6 +98,7 @@ export async function createDiagnosisReport(params: UploadReportParams): Promise
         toothNumber,
         clinicalNotes,
         reportDate,
+        fee,
         file
     } = params;
 
@@ -124,7 +126,7 @@ export async function createDiagnosisReport(params: UploadReportParams): Promise
     const docRef = await addDoc(collection(db, "diagnosisReports"), {
         patientId,
         doctorId,
-        appointmentId: appointmentId || "",
+        appointmentId,
         reportType,
         title,
         toothNumber: toothNumber || "",
@@ -136,6 +138,8 @@ export async function createDiagnosisReport(params: UploadReportParams): Promise
         fileSizeBytes: file.size,
         mimeType: file.type || "application/octet-stream",
         reportDate: reportDate || new Date().toISOString().slice(0, 10),
+        fee: fee || 0,
+        billed: false,
         createdAt: Date.now()
     });
 
@@ -146,12 +150,13 @@ export type UpdateReportParams = {
     id: string;
     patientId: string;
     doctorId: string;
-    appointmentId?: string;
+    appointmentId: string;
     reportType: DiagnosisReportType;
     title: string;
     toothNumber?: string;
     clinicalNotes: string;
     reportDate: string;
+    fee?: number;
     file?: File | null;
     existingFileUrl: string;
     existingFileName: string;
@@ -175,6 +180,7 @@ export async function updateDiagnosisReport(params: UpdateReportParams): Promise
         toothNumber,
         clinicalNotes,
         reportDate,
+        fee,
         file,
         existingFileUrl,
         existingFileName,
@@ -217,7 +223,7 @@ export async function updateDiagnosisReport(params: UpdateReportParams): Promise
     await updateDoc(doc(db, "diagnosisReports", id), {
         patientId,
         doctorId,
-        appointmentId: appointmentId || "",
+        appointmentId,
         reportType,
         title,
         toothNumber: toothNumber || "",
@@ -229,6 +235,7 @@ export async function updateDiagnosisReport(params: UpdateReportParams): Promise
         fileSizeBytes,
         mimeType,
         reportDate: reportDate || new Date().toISOString().slice(0, 10),
+        fee: fee || 0,
         updatedAt: Date.now()
     });
 }

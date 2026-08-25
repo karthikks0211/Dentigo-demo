@@ -56,6 +56,7 @@ export default function DoctorsPage() {
         const specialty = String(f.get("specialty") || "").trim();
         const phone = String(f.get("phone") || "").trim();
         const email = String(f.get("email") || "").trim();
+        const consultationFee = Number(f.get("consultationFee")) || 0;
 
         if (!name || !specialty) {
             showToast("Please enter the doctor's name and specialty", "error");
@@ -65,12 +66,12 @@ export default function DoctorsPage() {
 
         try {
             if (editing) {
-                await updateDoc(doc(db, "doctors", editing.id), { name, specialty, phone, email });
+                await updateDoc(doc(db, "doctors", editing.id), { name, specialty, phone, email, consultationFee });
                 showToast("Doctor details updated");
             } else {
                 const photoColor = COLORS[Math.floor(Math.random() * COLORS.length)];
                 await addDoc(collection(db, "doctors"), {
-                    name, specialty, phone, email, photoColor,
+                    name, specialty, phone, email, photoColor, consultationFee,
                     weeklyAvailability: [], blockedDates: [], createdAt: Date.now()
                 });
                 showToast("Doctor added");
@@ -197,6 +198,10 @@ export default function DoctorsPage() {
                                 <input name="email" type="email" defaultValue={editing?.email} placeholder="doctor@dentigo.dev" />
                             </label>
                         </div>
+                        <label>Consultation Fee (₹)
+                            <input name="consultationFee" type="number" min={0} defaultValue={editing?.consultationFee || ""} placeholder="500" />
+                            <small className="muted">Pre-fills the doctor fee at POS checkout — staff can still override it per visit.</small>
+                        </label>
                     </form>
                 </Drawer>
             )}

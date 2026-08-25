@@ -1,13 +1,17 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import {
     Plus, Search, FileText, Trash2, Eye, Download, Calendar,
     UploadCloud, User, Stethoscope, Filter, Activity, Layers,
-    FileSpreadsheet, Sparkles, MoreVertical, Pencil
+    FileSpreadsheet, Sparkles, MoreVertical, Pencil, IndianRupee, X
 } from "lucide-react";
+import { db } from "@/lib/firebase";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
+import { useAuth } from "@/lib/auth-context";
+import { logAppointmentEvent } from "@/lib/audit";
 import {
     createDiagnosisReport,
     updateDiagnosisReport,
@@ -15,7 +19,7 @@ import {
     formatBytes,
     DIAGNOSIS_REPORT_TYPES
 } from "@/lib/diagnosis";
-import type { DiagnosisReport, DiagnosisReportType, Patient, Doctor, Appointment } from "@/lib/types";
+import type { DiagnosisReport, DiagnosisReportType, Patient, Doctor, Appointment, ScanFeeMaster } from "@/lib/types";
 import Drawer from "@/components/ui/Drawer";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import PillLoader from "@/components/PillLoader";
@@ -43,7 +47,50 @@ export default function DiagnosisPage() {
     const { data: reports, loading: loadingReports } = useCollection<DiagnosisReport>("diagnosisReports");
     const { data: patients, loading: loadingPatients } = useCollection<Patient>("patients");
     const { data: doctors } = useCollection<Doctor>("doctors");
+    const { data: appointments } = useCollection<Appointment>("appointments");
+    const { data: scanFees } = useCollection<ScanFeeMaster>("scanFeeMasters");
     const showToast = useToast();
+    const { user } = useAuth();
+    const actorEmail = user?.email || "unknown";
+
+    const scanFeeByType = useMemo(() => {
+        const map = new Map<DiagnosisReportType, ScanFeeMaster>();
+        scanFees.forEach((f) => map.set(f.reportType, f));
+        return map;
+    }, [scanFees]);
+
+    // Scan fee master management (a small admin panel — 3-4 curated scan
+    // types with a default price each, so POS can auto-fill a report's fee).
+    const [feesDrawerOpen, setFeesDrawerOpen] = useState(false);
+    const [savingFeeType, setSavingFeeType] = useState<DiagnosisReportType | null>(null);
+    const [newFeeType, setNewFeeType] = useState<DiagnosisReportType>("Dental X-Ray (IOPA/OPG)");
+    const [newFeeAmount, setNewFeeAmount] = useState("");
+
+    async function saveScanFee(type: DiagnosisReportType, fee: number) {
+        setSavingFeeType(type);
+        try {
+            const existing = scanFeeByType.get(type);
+            if (existing) {
+                await updateDoc(doc(db, "scanFeeMasters", existing.id), { fee });
+            } else {
+                await addDoc(collection(db, "scanFeeMasters"), { reportType: type, fee, createdAt: Date.now() });
+            }
+            showToast(`Master fee for ${type} set to ₹${fee.toLocaleString()}`);
+        } catch {
+            showToast("Couldn't save the scan fee", "error");
+        } finally {
+            setSavingFeeType(null);
+        }
+    }
+
+    async function removeScanFee(entry: ScanFeeMaster) {
+        try {
+            await deleteDoc(doc(db, "scanFeeMasters", entry.id));
+            showToast(`Removed master fee for ${entry.reportType}`);
+        } catch {
+            showToast("Couldn't remove the scan fee", "error");
+        }
+    }
 
     // Filters and search
     const [query, setQuery] = useState("");
@@ -76,7 +123,19 @@ export default function DiagnosisPage() {
     // Form inputs state
     const [formPatientId, setFormPatientId] = useState<string>("");
     const [formDoctorId, setFormDoctorId] = useState<string>("");
+    const [formAppointmentId, setFormAppointmentId] = useState<string>("");
     const [formReportType, setFormReportType] = useState<DiagnosisReportType>("Dental X-Ray (IOPA/OPG)");
+    const [formFee, setFormFee] = useState<string>("");
+
+    // Appointments for whichever patient is selected in the form — lets the
+    // report be tied to the specific visit it was taken during, which is
+    // what POS uses to find "the" scan(s) to bill for a token.
+    const appointmentsForFormPatient = useMemo(
+        () => appointments
+            .filter((a) => a.patientId === formPatientId && a.status !== "Cancelled")
+            .sort((a, b) => (a.date < b.date ? 1 : -1)),
+        [appointments, formPatientId]
+    );
 
     const loading = loadingReports || loadingPatients;
 
@@ -132,7 +191,9 @@ export default function DiagnosisPage() {
         setEditingReport(null);
         setFormPatientId(prefilledPatientId || patients[0]?.id || "");
         setFormDoctorId(doctors[0]?.id || "");
+        setFormAppointmentId("");
         setFormReportType("Dental X-Ray (IOPA/OPG)");
+        setFormFee(String(scanFeeByType.get("Dental X-Ray (IOPA/OPG)")?.fee || ""));
         setSelectedFile(null);
         setDrawerOpen(true);
     }
@@ -142,9 +203,21 @@ export default function DiagnosisPage() {
         setEditingReport(report);
         setFormPatientId(report.patientId);
         setFormDoctorId(report.doctorId);
+        setFormAppointmentId(report.appointmentId || "");
         setFormReportType(report.reportType);
+        setFormFee(String(report.fee || ""));
         setSelectedFile(null);
         setDrawerOpen(true);
+    }
+
+    function handleReportTypeChange(type: DiagnosisReportType) {
+        setFormReportType(type);
+        // Only auto-fill from the master list on a fresh upload — never
+        // clobber a fee someone already typed in or an existing report's.
+        if (!editingReport) {
+            const master = scanFeeByType.get(type);
+            if (master) setFormFee(String(master.fee));
+        }
     }
 
     async function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
@@ -157,6 +230,8 @@ export default function DiagnosisPage() {
         const toothNumber = String(f.get("toothNumber") || "").trim();
         const reportDate = String(f.get("reportDate") || new Date().toISOString().slice(0, 10));
         const clinicalNotes = String(f.get("clinicalNotes") || "").trim();
+        const appointmentId = String(f.get("appointmentId") || "");
+        const fee = Number(f.get("fee")) || 0;
 
         if (!patientId) {
             showToast("Please select a patient", "error");
@@ -164,6 +239,10 @@ export default function DiagnosisPage() {
         }
         if (!doctorId) {
             showToast("Please select a doctor", "error");
+            return;
+        }
+        if (!appointmentId) {
+            showToast("Please select the visit this report is for", "error");
             return;
         }
         if (!title) {
@@ -188,11 +267,13 @@ export default function DiagnosisPage() {
                     id: editingReport.id,
                     patientId,
                     doctorId,
+                    appointmentId,
                     reportType,
                     title,
                     toothNumber,
                     clinicalNotes,
                     reportDate,
+                    fee,
                     file: selectedFile,
                     existingFileUrl: editingReport.fileUrl,
                     existingFileName: editingReport.fileName,
@@ -206,12 +287,20 @@ export default function DiagnosisPage() {
                 await createDiagnosisReport({
                     patientId,
                     doctorId,
+                    appointmentId,
                     reportType,
                     title,
                     toothNumber,
                     clinicalNotes,
                     reportDate,
+                    fee,
                     file: selectedFile!
+                });
+                await logAppointmentEvent({
+                    appointmentId,
+                    action: "DiagnosisReportAdded",
+                    detail: `${title} (${reportType})${fee ? ` — ₹${fee.toLocaleString()}` : ""}`,
+                    byEmail: actorEmail
                 });
                 showToast("Diagnosis report uploaded and saved to patient record");
             }
@@ -253,10 +342,15 @@ export default function DiagnosisPage() {
                     <h1>Diagnosis &amp; Diagnostic Reports</h1>
                     <p>Centralized digital hub for patient X-rays, CT/CBCT scans, lab tests, and clinical findings.</p>
                 </div>
-                <button className="primary" onClick={() => openCreateDrawer()}>
-                    <Plus size={15} style={{ verticalAlign: -2, marginRight: 6 }} />
-                    Upload Diagnostic Report
-                </button>
+                <div style={{ display: "flex", gap: 10 }}>
+                    <button className="quickDemoBtn" style={{ margin: 0 }} onClick={() => setFeesDrawerOpen(true)}>
+                        <IndianRupee size={14} style={{ verticalAlign: -2, marginRight: 4 }} />Scan Fees
+                    </button>
+                    <button className="primary" onClick={() => openCreateDrawer()}>
+                        <Plus size={15} style={{ verticalAlign: -2, marginRight: 6 }} />
+                        Upload Diagnostic Report
+                    </button>
+                </div>
             </div>
 
             {/* Quick Metrics */}
@@ -667,6 +761,26 @@ export default function DiagnosisPage() {
                             </select>
                         </label>
 
+                        {/* Appointment / Visit — required: this is what lets POS find this
+                            scan when billing that patient's token. */}
+                        <label>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                Linked Appointment / Visit <span style={{ color: "#dc2626", fontWeight: 700 }}>*</span>
+                            </span>
+                            <select
+                                name="appointmentId"
+                                value={formAppointmentId}
+                                onChange={(e) => setFormAppointmentId(e.target.value)}
+                                required
+                            >
+                                <option value="" disabled>{formPatientId ? "Select the visit this report is for…" : "Select a patient first…"}</option>
+                                {appointmentsForFormPatient.map((a) => (
+                                    <option key={a.id} value={a.id}>{a.date} · {a.time} · {a.treatment}</option>
+                                ))}
+                            </select>
+                            <small className="muted">Its fee shows up automatically at POS checkout for this visit.</small>
+                        </label>
+
                         {/* Report Category */}
                         <div className="two">
                             <label>
@@ -676,7 +790,7 @@ export default function DiagnosisPage() {
                                 <select
                                     name="reportType"
                                     value={formReportType}
-                                    onChange={(e) => setFormReportType(e.target.value as DiagnosisReportType)}
+                                    onChange={(e) => handleReportTypeChange(e.target.value as DiagnosisReportType)}
                                     required
                                 >
                                     {DIAGNOSIS_REPORT_TYPES.map((t) => (
@@ -686,14 +800,26 @@ export default function DiagnosisPage() {
                             </label>
 
                             <label>
-                                <span>Tooth # / Region (Optional)</span>
+                                <span>Fee (₹)</span>
                                 <input
-                                    name="toothNumber"
-                                    defaultValue={editingReport?.toothNumber || ""}
-                                    placeholder="e.g. 14, 38, Upper Arch"
+                                    name="fee"
+                                    type="number"
+                                    min={0}
+                                    value={formFee}
+                                    onChange={(e) => setFormFee(e.target.value)}
+                                    placeholder={scanFeeByType.get(formReportType) ? String(scanFeeByType.get(formReportType)!.fee) : "0"}
                                 />
                             </label>
                         </div>
+
+                        <label>
+                            <span>Tooth # / Region (Optional)</span>
+                            <input
+                                name="toothNumber"
+                                defaultValue={editingReport?.toothNumber || ""}
+                                placeholder="e.g. 14, 38, Upper Arch"
+                            />
+                        </label>
 
                         {/* Title & Date */}
                         <div className="two">
@@ -909,6 +1035,70 @@ export default function DiagnosisPage() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Scan Fee Master Drawer — the curated price list POS and the
+                report upload form both auto-fill from. */}
+            {feesDrawerOpen && (
+                <Drawer
+                    title="Scan / Report Fees"
+                    subtitle="Default price for each scan or lab type — auto-fills when a report is uploaded, and feeds the POS bill."
+                    onClose={() => setFeesDrawerOpen(false)}
+                    footer={<button type="button" onClick={() => setFeesDrawerOpen(false)} style={{ width: "100%" }}>Done</button>}
+                >
+                    <div style={{ display: "grid", gap: 10 }}>
+                        {scanFees.length === 0 ? (
+                            <p className="muted" style={{ margin: 0 }}>No master fees set yet — add one or two of your most common scan types below.</p>
+                        ) : (
+                            scanFees.map((entry) => (
+                                <div key={entry.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <span style={{ flex: 1, fontSize: 13 }}>{entry.reportType}</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        defaultValue={entry.fee}
+                                        style={{ width: 100 }}
+                                        onBlur={(e) => {
+                                            const val = Number(e.target.value) || 0;
+                                            if (val !== entry.fee) saveScanFee(entry.reportType, val);
+                                        }}
+                                        disabled={savingFeeType === entry.reportType}
+                                    />
+                                    <button type="button" className="more" style={{ color: "#dc2626" }} onClick={() => removeScanFee(entry)}>
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            ))
+                        )}
+
+                        <div style={{ borderTop: "1px solid var(--dg-border)", paddingTop: 12, display: "flex", gap: 8, alignItems: "end" }}>
+                            <label style={{ flex: 1, margin: 0 }}>
+                                <span>Scan type</span>
+                                <select value={newFeeType} onChange={(e) => setNewFeeType(e.target.value as DiagnosisReportType)}>
+                                    {DIAGNOSIS_REPORT_TYPES.filter((t) => !scanFeeByType.has(t)).map((t) => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label style={{ width: 100, margin: 0 }}>
+                                <span>Fee (₹)</span>
+                                <input type="number" min={0} value={newFeeAmount} onChange={(e) => setNewFeeAmount(e.target.value)} placeholder="500" />
+                            </label>
+                            <button
+                                type="button"
+                                className="quickDemoBtn"
+                                style={{ margin: 0, height: 40 }}
+                                disabled={!newFeeAmount || scanFeeByType.has(newFeeType)}
+                                onClick={async () => {
+                                    await saveScanFee(newFeeType, Number(newFeeAmount) || 0);
+                                    setNewFeeAmount("");
+                                }}
+                            >
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </Drawer>
             )}
 
             {/* Confirm Delete Modal */}

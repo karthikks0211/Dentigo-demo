@@ -1,13 +1,15 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { Plus, Search, Trash2, Beaker, CheckCircle2 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { useCollection } from "@/lib/firestore-hooks";
 import { useToast } from "@/lib/toast-context";
-import { planDispense, commitDispense, generateInvoiceNo, type DispensePlan } from "@/lib/pharmacy";
-import type { Prescription, PrescriptionMedicine, Patient, Doctor, Medicine } from "@/lib/types";
+import { useAuth } from "@/lib/auth-context";
+import { planDispense, type DispensePlan } from "@/lib/pharmacy";
+import { logAppointmentEvent } from "@/lib/audit";
+import type { Prescription, PrescriptionMedicine, Patient, Doctor, Medicine, Appointment } from "@/lib/types";
 import Drawer from "@/components/ui/Drawer";
 import PillLoader from "@/components/PillLoader";
 
@@ -20,12 +22,28 @@ export default function PrescriptionsPage() {
     const { data: patients } = useCollection<Patient>("patients");
     const { data: doctors } = useCollection<Doctor>("doctors");
     const { data: medicines } = useCollection<Medicine>("medicines");
+    const { data: appointments } = useCollection<Appointment>("appointments");
     const showToast = useToast();
+    const { user } = useAuth();
+    const actorEmail = user?.email || "unknown";
 
     const [query, setQuery] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [lines, setLines] = useState<PrescriptionMedicine[]>([emptyLine()]);
+    const [formPatientId, setFormPatientId] = useState("");
+    const [formAppointmentId, setFormAppointmentId] = useState("");
+    const [formDiagnosis, setFormDiagnosis] = useState("");
+
+    // Appointments for whichever patient is picked — so the prescription can
+    // be tied to the specific visit it was written during. That link is what
+    // lets POS find "the" prescription to bill for a token.
+    const appointmentsForFormPatient = useMemo(
+        () => appointments
+            .filter((a) => a.patientId === formPatientId && a.status !== "Cancelled")
+            .sort((a, b) => (a.date < b.date ? 1 : -1)),
+        [appointments, formPatientId]
+    );
 
     const [dispensing, setDispensing] = useState<Prescription | null>(null);
     const [plan, setPlan] = useState<DispensePlan | null>(null);
@@ -56,12 +74,13 @@ export default function PrescriptionsPage() {
         const f = new FormData(e.currentTarget);
         const patientId = String(f.get("patient") || "");
         const doctorId = String(f.get("doctor") || "");
+        const appointmentId = String(f.get("appointmentId") || "");
         const diagnosis = String(f.get("diagnosis") || "").trim();
         const notes = String(f.get("notes") || "");
         const validLines = lines.filter((l) => l.medicineId && l.quantity > 0);
 
-        if (!patientId || !doctorId || !diagnosis) {
-            showToast("Please select patient, doctor, and enter a diagnosis", "error");
+        if (!patientId || !doctorId || !appointmentId || !diagnosis) {
+            showToast("Please select patient, doctor, the visit, and enter a diagnosis", "error");
             return;
         }
         if (validLines.length === 0) {
@@ -72,15 +91,25 @@ export default function PrescriptionsPage() {
         setSubmitting(true);
         try {
             await addDoc(collection(db, "prescriptions"), {
-                patientId, doctorId, diagnosis, notes,
+                patientId, doctorId, appointmentId, diagnosis, notes,
                 medicines: validLines,
                 date: new Date().toISOString().slice(0, 10),
+                readyForPos: false,
                 dispensed: false,
                 createdAt: Date.now()
+            });
+            await logAppointmentEvent({
+                appointmentId,
+                action: "PrescriptionCreated",
+                detail: `${diagnosis} — ${validLines.map((l) => l.name).join(", ")}`,
+                byEmail: actorEmail
             });
             showToast("Prescription created");
             setDrawerOpen(false);
             setLines([emptyLine()]);
+            setFormPatientId("");
+            setFormAppointmentId("");
+            setFormDiagnosis("");
         } catch {
             showToast("Couldn't save the prescription", "error");
         } finally {
@@ -103,17 +132,25 @@ export default function PrescriptionsPage() {
         }
     }
 
+    // Stock is only ever deducted at the moment POS payment is confirmed —
+    // this just flags the prescription so it shows up as a pending line on
+    // its token in POS. See lib/pos.ts's checkoutVisit for the actual commit.
     async function confirmDispense() {
         if (!dispensing || !plan || plan.shortfalls.length > 0) return;
         setCommitting(true);
         try {
-            const invoiceNo = generateInvoiceNo("PH");
-            await commitDispense(dispensing, plan, invoiceNo);
-            showToast(`Dispensed — invoice ${invoiceNo} generated, stock deducted FEFO`);
+            await updateDoc(doc(db, "prescriptions", dispensing.id), { readyForPos: true });
+            await logAppointmentEvent({
+                appointmentId: dispensing.appointmentId,
+                action: "PrescriptionSentToPos",
+                detail: `${dispensing.medicines.map((m) => m.name).join(", ")} — est. ₹${plan.totalAmount.toLocaleString()}`,
+                byEmail: actorEmail
+            });
+            showToast("Sent to POS — pay it there to deduct stock and collect payment");
             setDispensing(null);
             setPlan(null);
         } catch (err: any) {
-            showToast(err?.message || "Dispense failed", "error");
+            showToast(err?.message || "Couldn't send to POS", "error");
         } finally {
             setCommitting(false);
         }
@@ -126,9 +163,9 @@ export default function PrescriptionsPage() {
             <div className="pageHead">
                 <div>
                     <h1>Prescriptions</h1>
-                    <p>Write prescriptions and dispense them straight from here — FEFO handles batch selection.</p>
+                    <p>Write prescriptions and click Dispense to send them to POS — stock is deducted (FEFO) only once paid there.</p>
                 </div>
-                <button className="primary" onClick={() => { setLines([emptyLine()]); setDrawerOpen(true); }}>
+                <button className="primary" onClick={() => { setLines([emptyLine()]); setFormPatientId(""); setFormAppointmentId(""); setFormDiagnosis(""); setDrawerOpen(true); }}>
                     <Plus size={14} style={{ verticalAlign: -2, marginRight: 4 }} />New Prescription
                 </button>
             </div>
@@ -168,10 +205,12 @@ export default function PrescriptionsPage() {
                                         <td>
                                             {rx.dispensed
                                                 ? <span className="badge completed"><i />Dispensed</span>
-                                                : <span className="badge pending"><i />Not dispensed</span>}
+                                                : rx.readyForPos
+                                                    ? <span className="badge confirmed"><i />Awaiting payment in POS</span>
+                                                    : <span className="badge pending"><i />Not dispensed</span>}
                                         </td>
                                         <td>
-                                            {!rx.dispensed && (
+                                            {!rx.dispensed && !rx.readyForPos && (
                                                 <button className="quickDemoBtn" style={{ margin: 0 }} onClick={() => openDispense(rx)}>
                                                     <Beaker size={13} style={{ verticalAlign: -2, marginRight: 4 }} />Dispense
                                                 </button>
@@ -200,7 +239,10 @@ export default function PrescriptionsPage() {
                     <form id="rx-form" onSubmit={handleSubmit} style={{ display: "grid", gap: 15 }}>
                         <div className="two">
                             <label>Patient
-                                <select name="patient" required defaultValue="">
+                                <select
+                                    name="patient" required value={formPatientId}
+                                    onChange={(e) => { setFormPatientId(e.target.value); setFormAppointmentId(""); setFormDiagnosis(""); }}
+                                >
                                     <option value="" disabled>Select patient…</option>
                                     {patients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                                 </select>
@@ -212,8 +254,27 @@ export default function PrescriptionsPage() {
                                 </select>
                             </label>
                         </div>
+                        <label>Appointment / Visit
+                            <select
+                                name="appointmentId" required value={formAppointmentId}
+                                onChange={(e) => {
+                                    setFormAppointmentId(e.target.value);
+                                    const appt = appointmentsForFormPatient.find((a) => a.id === e.target.value);
+                                    if (appt) setFormDiagnosis(appt.treatment);
+                                }}
+                            >
+                                <option value="" disabled>{formPatientId ? "Select the visit this is for…" : "Select a patient first…"}</option>
+                                {appointmentsForFormPatient.map((a) => (
+                                    <option key={a.id} value={a.id}>{a.date} · {a.time} · {a.treatment}</option>
+                                ))}
+                            </select>
+                        </label>
                         <label>Diagnosis
-                            <input name="diagnosis" placeholder="Gingivitis" required />
+                            <input
+                                name="diagnosis" placeholder="Gingivitis" required
+                                value={formDiagnosis} onChange={(e) => setFormDiagnosis(e.target.value)}
+                            />
+                            <small className="muted">Auto-filled from the selected visit&rsquo;s treatment — edit as needed.</small>
                         </label>
 
                         <div style={{ display: "grid", gap: 10 }}>
@@ -280,7 +341,7 @@ export default function PrescriptionsPage() {
                             disabled={planLoading || committing || !plan || plan.shortfalls.length > 0}
                             onClick={confirmDispense}
                         >
-                            {committing ? "Dispensing…" : "Confirm Dispense"}
+                            {committing ? "Sending…" : "Dispense — Send to POS"}
                         </button>
                     </>}
                 >
@@ -288,7 +349,7 @@ export default function PrescriptionsPage() {
                         <PillLoader label="Allocating stock (FEFO)…" />
                     ) : (
                         <div style={{ display: "grid", gap: 12 }}>
-                            <p className="muted" style={{ margin: 0 }}>Earliest-expiring batches are drawn from first. This preview shows exactly what will be deducted.</p>
+                            <p className="muted" style={{ margin: 0 }}>Earliest-expiring batches are previewed here (FEFO), but stock is only actually deducted when this is paid at POS. This adds it as a pending line on the patient&rsquo;s token there.</p>
                             {plan.lines.map((l, i) => (
                                 <div key={i} className="card" style={{ padding: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <div>

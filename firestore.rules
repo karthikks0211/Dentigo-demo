@@ -120,9 +120,32 @@ service cloud.firestore {
     match /medicines/{id} { allow read, write: if isStaff(); }
     match /batches/{id} { allow read, write: if isStaff(); }
     match /suppliers/{id} { allow read, write: if isStaff(); }
-    match /purchaseOrders/{id} { allow read, write: if isStaff(); }
     match /stockTransactions/{id} { allow read, write: if isStaff(); }
     match /salesReturns/{id} { allow read, write: if isStaff(); }
+
+    // ----------------------------------------------- procurement (PR→PO→GRN)
+    // Same single-staff-role model as the rest of this demo (see header
+    // comment) — every write is gated on isStaff(), with segregation of
+    // duties (requester vs. approver vs. receiver) enforced as a workflow
+    // state machine in lib/procurement.ts rather than as a per-role rule
+    // here. A future multi-role rollout would tighten these per action
+    // (e.g. only a "manager" role may transition PENDING_APPROVAL -> APPROVED)
+    // by checking a staffUsers/{uid}.role doc the same way isStaff() does.
+    match /purchaseRequests/{id} { allow read, write: if isStaff(); }
+    match /purchaseOrders/{id} { allow read, write: if isStaff(); }
+    match /goodsReceipts/{id} { allow read, write: if isStaff(); }
+    match /supplierInvoices/{id} { allow read, write: if isStaff(); }
+    match /supplierPayments/{id} { allow read, write: if isStaff(); }
+
+    // --------------------------------------------- Scan / diagnostic fees
+    // Master price list POS and the Diagnosis upload form auto-fill from.
+    match /scanFeeMasters/{id} { allow read, write: if isStaff(); }
+
+    // --------------------------------------------------------------- HR
+    match /employees/{id} { allow read, write: if isStaff(); }
+    match /attendance/{id} { allow read, write: if isStaff(); }
+    match /payrollRuns/{id} { allow read, write: if isStaff(); }
+    match /payrollPayments/{id} { allow read, write: if isStaff(); }
 
     // Safe default for anything not covered above.
     match /{document=**} {

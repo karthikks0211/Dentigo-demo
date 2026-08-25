@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from "react";
 import {
     Sparkles, LayoutGrid, Stethoscope, Users, CalendarDays,
-    Pill, Boxes, Receipt, BookOpen, BarChart3, PartyPopper
+    Pill, Boxes, BookOpen, BarChart3, PartyPopper, ShoppingCart, Store
 } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -44,31 +44,38 @@ export const tourSteps: TourStep[] = [
     },
     {
         title: "Appointments & Booking",
-        description: "Book a visit for a patient with a doctor, then track it on the Appointments board as it moves from Pending to Completed.",
+        description: "Book a visit for a patient with a doctor, then track it on the Appointments board as it moves from Pending to Completed — marking it Completed is what makes the visit payable on Point of Sale. Every status change is recorded on that appointment's Audit Log.",
         icon: CalendarDays,
         href: "/appointments",
         linkLabel: "Go to Appointments"
     },
     {
         title: "Prescriptions",
-        description: "Write prescriptions for a patient and dispense them straight from stock. DentiGO automatically pulls from the earliest-expiring batch first (FEFO).",
+        description: "Write prescriptions for a patient and click Dispense to send them to Point of Sale — stock isn't deducted until it's actually paid there. DentiGO allocates from the earliest-expiring batch first (FEFO).",
         icon: Pill,
         href: "/prescriptions",
         linkLabel: "Go to Prescriptions"
     },
     {
         title: "Inventory",
-        description: "Manage medicines, batches, stock transactions, purchase orders and suppliers. Keep an eye on the Expiry and Low Stock reports, and print barcodes for new stock.",
+        description: "Manage medicines, batches and stock transactions. Keep an eye on the Expiry and Low Stock reports, and print barcodes for new stock.",
         icon: Boxes,
         href: "/inventory/medicines",
         linkLabel: "Go to Inventory"
     },
     {
-        title: "Invoices & Payments",
-        description: "Generate an invoice from a completed appointment, record cash or card payments against it, and handle returns from Sales History.",
-        icon: Receipt,
-        href: "/invoices/create",
-        linkLabel: "Go to Invoices"
+        title: "Procurement",
+        description: "The full buying cycle: raise a Purchase Request when stock runs low, turn it into a Purchase Order, get it approved and sent to the supplier, then confirm what actually arrives with a Goods Receipt — that's the only step that updates stock. Supplier invoices and payments close the loop.",
+        icon: ShoppingCart,
+        href: "/procurement/purchase-requests",
+        linkLabel: "Go to Procurement"
+    },
+    {
+        title: "Point of Sale",
+        description: "Pick a Completed appointment's token to see everything owed for that visit — consultation, scans, prescriptions sent here — and pay it, all or in parts. Invoices → Sales History keeps every bill on record, and Returns handles medicine sent back.",
+        icon: Store,
+        href: "/pos",
+        linkLabel: "Go to Point of Sale"
     },
     {
         title: "Ledger & Reports",

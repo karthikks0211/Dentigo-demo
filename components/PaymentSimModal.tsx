@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, ShieldCheck, X } from "lucide-react";
+import { ShieldCheck, X } from "lucide-react";
 
 type Stage = "form" | "processing" | "success";
 
@@ -65,7 +65,10 @@ export default function PaymentSimModal({
                     )}
                     {stage === "success" && (
                         <div style={{ padding: "30px 0" }} className="razorpaySuccess">
-                            <CheckCircle2 size={48} color="var(--dg-success)" />
+                            <svg className="successCheckmark" viewBox="0 0 52 52" style={{ margin: "0 auto" }}>
+                                <circle className="successCheckmarkCircle" cx="26" cy="26" r="24" />
+                                <path className="successCheckmarkTick" d="M14 27l7 7 16-16" />
+                            </svg>
                             <p style={{ margin: "12px 0 0", fontWeight: 700, fontSize: 16 }}>Payment successful</p>
                             <p style={{ margin: "4px 0 0", color: "var(--dg-muted)", fontSize: 13 }}>₹{amount.toLocaleString()} received</p>
                         </div>

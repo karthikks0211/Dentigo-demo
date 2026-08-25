@@ -493,6 +493,46 @@ header {
     background: #e4f6ed
 }
 
+/* Procurement (PO/PR/GRN) statuses — compound .badge selectors so they can't
+   bleed onto unrelated elements that happen to share a bare class name
+   (e.g. .navGroupChevron.open). */
+.badge.pending_approval,
+.badge.open {
+    color: #c98b27;
+    background: #fff5dc
+}
+
+.badge.approved,
+.badge.linked {
+    color: #367edc;
+    background: #e8f1ff
+}
+
+.badge.sent {
+    color: #7c3aed;
+    background: #f1e8ff
+}
+
+.badge.partially_received {
+    color: #b45309;
+    background: #fef3c7
+}
+
+.badge.fully_received {
+    color: #28936e;
+    background: #e4f6ed
+}
+
+.badge.closed {
+    color: #64748b;
+    background: #f1f5f9
+}
+
+.badge.rejected {
+    color: #d75554;
+    background: #ffebeb
+}
+
 .dots,
 .more {
     border: 0;
@@ -1141,7 +1181,7 @@ td small {
     right: 26px;
     top: 22px;
     z-index: 10;
-    background: #243b40;
+    background: #15803d;
     color: #fff;
     padding: 14px 18px;
     border-radius: 7px;
@@ -1149,11 +1189,12 @@ td small {
     font-size: 15px;
     display: flex;
     gap: 9px;
-    align-items: center
+    align-items: center;
+    animation: toastSlideIn .28s cubic-bezier(0.34, 1.56, 0.64, 1)
 }
 
 .toast span {
-    background: #1fab83;
+    background: rgba(255, 255, 255, 0.22);
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -1165,11 +1206,31 @@ td small {
 .toast i {
     height: 2px;
     width: 30px;
-    background: #40caa2;
+    background: rgba(255, 255, 255, 0.5);
     position: absolute;
     bottom: 0;
     left: 0;
     border-radius: 3px
+}
+
+.toast.error {
+    background: #dc2626;
+}
+
+.toast.info {
+    background: #243b40;
+}
+
+@keyframes toastSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-14px) scale(0.96);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 @media(max-width:900px) {
@@ -3749,6 +3810,101 @@ nav button:hover {
 
 .razorpaySuccess {
     animation: routeFadeIn .3s ease;
+}
+
+.paymentSuccessOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    background: rgba(15, 45, 55, 0.35);
+    backdrop-filter: blur(2px);
+    animation: routeFadeIn .2s ease;
+}
+
+.paymentSuccessCard {
+    background: #fff;
+    border-radius: var(--dg-radius-lg);
+    box-shadow: 0 20px 50px rgba(15, 45, 55, 0.25);
+    padding: 34px 42px;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    animation: successPop .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.successCheckmark {
+    width: 76px;
+    height: 76px;
+    margin-bottom: 6px;
+}
+
+.successCheckmarkCircle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 3;
+    stroke: var(--dg-success);
+    fill: none;
+    animation: successStrokeCircle .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.successCheckmarkTick {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-width: 4;
+    stroke: var(--dg-success);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: successStrokeTick .35s cubic-bezier(0.65, 0, 0.45, 1) .55s forwards;
+}
+
+.successCheckmarkTitle {
+    margin: 4px 0 0;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--dg-ink);
+}
+
+.successCheckmarkAmount {
+    margin: 4px 0 0;
+    font-weight: 800;
+    font-size: 26px;
+    color: var(--dg-success);
+}
+
+.successCheckmarkLabel {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--dg-muted);
+}
+
+@keyframes successPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes successStrokeCircle {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes successStrokeTick {
+    100% {
+        stroke-dashoffset: 0;
+    }
 }
 
 @media print {
